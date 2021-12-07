@@ -36,12 +36,21 @@ Python 程序的发布中心是 pypi.org, 为了避免用户名或程序名与�
 
 另外找到一个帮助打包的好东西 https://github.com/pypa/flit
 
-一个可直接执行的 package 需要有一个 `__main__.py` 文件, 在开发过程中可用 `flit install` 命令本地安装, 然后用 `python -m <package name>` 来执行.
+## 7. 虚拟环境 (virtualenv)
 
-### 6-a. 虚拟环境 (virtualenv)
+对于 Python 来说，虚拟环境非常重要，因此 Python 里有很多工具帮助解决这个问题，官方也提供了工具。一般来说，官方的工具就够用了，详见官方文档 https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
 
+## 8. 生成可执行命令
 
-## 7. 格式化, 语法检查
+有的 Python 程序当作一个库来使用，那就正常写程序就行，而如果要当作一个命令行程序来运行，则有两种方法：
+
+- 一个可直接执行的 package 需要有一个 `__main__.py` 文件, 在开发过程中可用 `flit install` 命令本地安装, 然后用 `python -m <package name>` 来执行.
+
+- 更好的方法 https://click.palletsprojects.com/en/8.0.x/setuptools/#setuptools-integration 采用这个方法时要注意两点：
+  - setup.cfg 里的 entry_points, 相当于 pyproject.toml 里的 project.scripts
+  - 要注意目录结构，在上面的 click 网站链接里有说明，注意看就行。
+
+## 9. 格式化, 语法检查
 
 还是受到 Go 的影响, Go 从一开始就强调代码格式化的重要性并且官方自带 formatter (当然, 只是说我受到 Go 的影响, 事实上各种语言都很重视这方面的工具), 很高兴在 Python 这边也找到了优秀的工具: Black 和 Flake8
 

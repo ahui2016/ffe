@@ -12,3 +12,6 @@ dynamic = ["version", "description"]
 
 [project.urls]
 Home = "https://github.com/ahui2016/ffe"
+
+[project.scripts]
+ffe = "ffe.main:cli"
