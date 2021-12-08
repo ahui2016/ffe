@@ -1,0 +1,13 @@
+global_names = [
+  '..\dest\',
+  '.\aaa\',
+  '.\file1.txt',
+]
+
+[[tasks]]
+recipe = 'one-way-sync'
+names = []
+
+[tasks.options]
+add = true
+delete = false
