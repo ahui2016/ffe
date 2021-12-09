@@ -1,4 +1,4 @@
-from .__init__ import __version__, __package_name__
+from .__init__ import __version__, __package_name__, __recipes__, init_recipes
 import click
 import tomli
 
@@ -12,6 +12,8 @@ def print_tasks(ctx, param, value):
     click.echo(tasks)
     ctx.exit()
 
+def print_recipes():
+    click.echo(__recipes__.keys())
 
 @click.group()
 @click.version_option(
@@ -30,6 +32,11 @@ def print_tasks(ctx, param, value):
     callback=print_tasks,
     is_eager=True,
 )
+@click.option(
+    # "is_print_recipes",
+    # "--list",
+    # type=
+)
 def cli():
     pass
 
@@ -47,3 +54,5 @@ def dropdb():
 
 if __name__ == "__main__":
     cli()
+    init_recipes()
+    
