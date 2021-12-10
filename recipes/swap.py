@@ -26,10 +26,13 @@ class Swap(Recipe):
 """
 
     def default_options(self) -> dict:
-        pass
+        return dict(verbose=True)
 
     def validate(self, names: list[str], options: dict) -> None:
         pass
+
+    def dry_run(self) -> None:
+        return super().dry_run()
 
     def exec(self) -> None:
         pass

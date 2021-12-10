@@ -1,6 +1,15 @@
-from .__init__ import __version__, __package_name__, __recipes__, init_recipes
+from ffe.model import Recipe
+from .__init__ import (
+    __version__,
+    __package_name__,
+    __recipes__,
+    check_tasks,
+    dry_run,
+    init_recipes,
+)
 import click
 import tomli
+import toml
 
 
 def print_tasks(ctx, param, value):
@@ -13,14 +22,36 @@ def print_tasks(ctx, param, value):
     ctx.exit()
 
 
-def print_recipes(ctx, param, value):
-    click.echo(__recipes__.keys())
-    ctx.exit()
+@click.group()
+@click.version_option(
+    __version__,
+    "-V",
+    "--version",
+    package_name=__package_name__,
+    message="%(prog)s version: %(version)s",
+)
+# @click.option(
+#     "-f",
+#     "--file",
+#     type=click.File("rb"),
+#     help="specify a TOML file",
+# )
+def cli():
+    # ctx.ensure_object(dict)
+    # if file is not None:
+    #     tasks = tomli.load(file)
+    #     ctx.obj["tasks"] = tasks
+    pass
+
+
+# 以上是主命令
+############
+# 以下是子命令
 
 
 def print_recipe_help(ctx, param, value):
     if value in __recipes__:
-        r = __recipes__[value]()
+        r: Recipe = __recipes__[value]()
         click.echo(r.help())
     else:
         click.echo(
@@ -30,53 +61,65 @@ def print_recipe_help(ctx, param, value):
     ctx.exit()
 
 
-@click.group()
-@click.version_option(
-    __version__,
-    "-V",
-    "--version",
-    package_name=__package_name__,
-    message="%(prog)s version: %(version)s",
-)
+# def print_recipe_task(ctx, param, value):
+
+
+@cli.command()
+@click.pass_context
+def list(ctx):
+    """List out all registered recipes."""
+    click.echo(__recipes__.keys())
+    ctx.exit()
+
+
+@cli.command()
 @click.option(
+    "in_file",
     "-f",
     "--file",
     type=click.File("rb"),
-    help="specify a TOML file",
-    callback=print_tasks,
-    # is_eager=True,
+    help="Specify a TOML file.",
+    required=True,
+)
+def dump(in_file):
+    """Do not run tasks, but print messages instead."""
+    tasks = toml.dumps(tomli.load(in_file))
+    click.echo(tasks)
+
+
+@cli.command()
+@click.option(
+    "in_file",
+    "-f",
+    "--file",
+    type=click.File("rb"),
+    help="Specify a TOML file.",
 )
 @click.option(
-    "-l",
-    "--list",
+    "is_dry",
+    "-dry",
+    "--dry-run",
     is_flag=True,
-    help="list out all registered recipes",
-    callback=print_recipes,
-    # is_eager=True,
+    help="Predict the results of a real run, based on a test run without modifying files.",
 )
-@click.option(
-    "-r",
-    "--recipe",
-    help="print a brief overview of the recipe",
-    callback=print_recipe_help,
-)
-def cli():
-    pass
+@click.pass_context
+def run(ctx, in_file, is_dry):
+    """Run tasks by specifying a file or a recipe."""
+    tasks = tomli.load(in_file)
+    click.echo(tasks)
 
+    _, err = check_tasks(tasks)
+    click.echo(tasks)
+    if err:
+        click.echo(err)
+        ctx.exit()
 
-@cli.command()
-def ver():
-    """the version of ffe"""
-    click.echo(f"ffe {__version__}")
-
-
-@cli.command()
-def dropdb():
-    click.echo("Dropped the database")
+    if is_dry is True:
+        dry_run(tasks)
 
 
 # 初始化
 init_recipes()
 
 if __name__ == "__main__":
-    cli()
+    cli(obj={})

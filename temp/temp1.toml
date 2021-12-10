@@ -1,11 +1,14 @@
-global_names = [
+global-names = [
   '..\dest\',
   '.\aaa\',
   '.\file1.txt',
 ]
 
+[global-options]
+dry-run = true
+
 [[tasks]]
-recipe = 'one-way-sync'
+recipe = 'swap'
 names = []
 
 [tasks.options]
