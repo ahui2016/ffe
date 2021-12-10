@@ -12,9 +12,10 @@ __recipes_folder__ = "./recipes"
 __recipes__: dict[str, Recipe] = {}
 
 
-def register(r: Recipe):
-    assert r.name in __recipes__, f"{r.name} already exists"
-    __recipes__[r.name] = r
+def register(recipe: Recipe):
+    name = recipe().name()  # recipe is a class, recipe() is an instance
+    assert name not in __recipes__, f"{name} already exists"
+    __recipes__[name] = recipe
 
 
 def init_recipes():

@@ -43,4 +43,4 @@ class Recipe(ABC):
 
     @abstractmethod
     def exec(self) -> None:
-        assert self.is_validated, "在执行 exec 之前必须先执行 validate"
+        assert not self.is_validated, "在执行 exec 之前必须先执行 validate"

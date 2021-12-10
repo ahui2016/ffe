@@ -12,8 +12,23 @@ def print_tasks(ctx, param, value):
     click.echo(tasks)
     ctx.exit()
 
-def print_recipes():
+
+def print_recipes(ctx, param, value):
     click.echo(__recipes__.keys())
+    ctx.exit()
+
+
+def print_recipe_help(ctx, param, value):
+    if value in __recipes__:
+        r = __recipes__[value]()
+        click.echo(r.help())
+    else:
+        click.echo(
+            f"not found recipe: {value}\n"
+            'use "-l" or "--list" to list out all registered recipes'
+        )
+    ctx.exit()
+
 
 @click.group()
 @click.version_option(
@@ -24,18 +39,26 @@ def print_recipes():
     message="%(prog)s version: %(version)s",
 )
 @click.option(
-    "in_file",
     "-f",
     "--file",
     type=click.File("rb"),
     help="specify a TOML file",
     callback=print_tasks,
-    is_eager=True,
+    # is_eager=True,
 )
 @click.option(
-    # "is_print_recipes",
-    # "--list",
-    # type=
+    "-l",
+    "--list",
+    is_flag=True,
+    help="list out all registered recipes",
+    callback=print_recipes,
+    # is_eager=True,
+)
+@click.option(
+    "-r",
+    "--recipe",
+    help="print a brief overview of the recipe",
+    callback=print_recipe_help,
 )
 def cli():
     pass
@@ -52,7 +75,8 @@ def dropdb():
     click.echo("Dropped the database")
 
 
+# 初始化
+init_recipes()
+
 if __name__ == "__main__":
     cli()
-    init_recipes()
-    

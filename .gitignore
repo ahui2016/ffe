@@ -1,2 +1,2 @@
 env
-src/ffe/__pycache__/
+*.pyc
