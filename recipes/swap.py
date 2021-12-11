@@ -14,9 +14,11 @@ class Swap(Recipe):
     而跨硬盘分区的文件则无法处理。
     """
 
+    @property  # 注意: 必须有 @property 这一行
     def name(self) -> str:
         return "swap"
 
+    @property  # 注意: 必须有 @property 这一行
     def help(self) -> str:
         return """
 对调两个文件名

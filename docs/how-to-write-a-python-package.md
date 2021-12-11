@@ -52,5 +52,10 @@ Python 程序的发布中心是 pypi.org, 为了避免用户名或程序名与�
 
 ## 9. 格式化, 语法检查
 
-还是受到 Go 的影响, Go 从一开始就强调代码格式化的重要性并且官方自带 formatter (当然, 只是说我受到 Go 的影响, 事实上各种语言都很重视这方面的工具), 很高兴在 Python 这边也找到了优秀的工具: Black, Flake8, Mypy
+还是受到 Go 的影响, Go 从一开始就强调代码格式化的重要性并且官方自带 formatter (当然, 只是说我受到 Go 的影响, 事实上各种语言都很重视这方面的工具), 很高兴在 Python 这边也找到了优秀的工具: Black, Flake8, Mypy, Pylance
 
+### 类型检查
+
+其实我写 Python 并不是太刻意追求类型安全，我决定用 type hints 最主要的目的是可以少写文档、更清晰地写文档。注明参数的类型时，用人类语言太麻烦，还不如用 type hints 更简明。
+
+Mypy 的默认行为不够严格，我没去研究如何提高 mypy 的严格程度，改用 Pylance, 在 VS Code 里设置 type checking mode 从 off 改为 basic 后发现严格程度刚刚好（如果改为 strict 则太严格），因此就这样用了。

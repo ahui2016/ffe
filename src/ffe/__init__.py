@@ -2,23 +2,13 @@
 
 __package_name__ = "ffe"
 __version__ = "0.0.1"
+__recipes_folder__ = "./recipes"
 
 from pathlib import Path
 import importlib.util
 import sys
-from typing import Type
-from .model import Plan, Recipe
 
-Recipes = dict[str, Type[Recipe]]
-
-__recipes_folder__ = "./recipes"
-__recipes__: Recipes = {}
-
-
-def register(recipe: Type[Recipe]):
-    name = recipe().name
-    assert name not in __recipes__, f"{name} already exists"
-    __recipes__[name] = recipe
+from ffe.model import register
 
 
 def init_recipes():
@@ -34,9 +24,3 @@ def init_recipes():
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
         register(module.__recipe__)
-
-
-def dry_run(plan: Plan):
-    for task in plan["tasks"]:
-        r: Recipe = __recipes__[task["recipe"]]()
-        r.dry_run()

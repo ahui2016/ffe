@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import TypedDict
-from . import Recipes
+from typing import Type, TypedDict
+
+from ffe.util import ErrMsg
+
 
 __default_max__ = 9999
 """默认处理文件数量的上限"""
-
-ErrMsg = str
-"""只是一个描述错误内容的简单字符串而已"""
 
 
 class Recipe(ABC):
@@ -81,28 +80,47 @@ class Plan(TypedDict, total=False):
     tasks: list[Task]
 
 
-def check_plan(plan: Plan, recipes: Recipes) -> ErrMsg:
+Recipes = dict[str, Type[Recipe]]
+__recipes__: Recipes = {}
+
+
+def register(recipe: Type[Recipe]):
+    name = recipe().name
+    assert name not in __recipes__, f"{name} already exists"
+    __recipes__[name] = recipe
+
+
+def check_plan(plan: Plan) -> ErrMsg:
     """plan 会被直接修改，返回错误消息（空字符串表示无错误）"""
 
     if not plan.get("tasks"):  # 如果 tasks 不存在或是空列表
         return "no task"
 
-    has_global_names = False if not plan.get("global-names") else True
-    has_global_options = False if not plan.get("global-options") else True
+    has_global_names = False if not plan.get("global_names") else True
+    has_global_options = False if not plan.get("global_options") else True
 
     for i, task in enumerate(plan.get("tasks", [])):
         recipe = task.get("recipe")
         if not recipe:
             return "recipe cannot be empty"
-        if recipe not in recipes:
+        if recipe not in __recipes__:
             return f"not found recipe: {recipe}"
 
+        # 上面已经检查过 key 的存在，因此可以 type:ignore
         if has_global_names:
-            plan["tasks"][i]["names"] = plan["global_names"] #type:ignore
+            plan["tasks"][i]["names"] = plan["global_names"]  # type:ignore
             plan["global_names"] = []
         if has_global_options:
-            for k, v in plan["global_options"].items():  #type:ignore
-                plan["tasks"][i]["options"][k] = v  #type:ignore
+            for k, v in plan["global_options"].items():  # type:ignore
+                plan["tasks"][i]["options"][k] = v  # type:ignore
             plan["global_options"] = {}
 
     return ""
+
+
+def dry_run(plan: Plan):
+    """提醒：在执行该函数前，应先执行 check_plan 函数。"""
+    for task in plan.get("tasks", []):
+        # check_plan 函数已经检查过 key 的存在，因此可以 type:ignore
+        r: Recipe = __recipes__[task["recipe"]]()  # type:ignore
+        r.dry_run()

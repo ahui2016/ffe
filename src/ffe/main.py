@@ -1,10 +1,8 @@
 from typing import cast
-from ffe.model import Plan, Recipe, check_plan
+from ffe.model import Plan, Recipe, __recipes__, check_plan, dry_run
 from . import (
     __version__,
     __package_name__,
-    __recipes__,
-    dry_run,
     init_recipes,
 )
 import click
@@ -30,12 +28,6 @@ def print_tasks(ctx, param, value):
     package_name=__package_name__,
     message="%(prog)s version: %(version)s",
 )
-# @click.option(
-#     "-f",
-#     "--file",
-#     type=click.File("rb"),
-#     help="specify a TOML file",
-# )
 def cli():
     # ctx.ensure_object(dict)
     # if file is not None:
@@ -59,9 +51,6 @@ def print_recipe_help(ctx, param, value):
             'use "-l" or "--list" to list out all registered recipes'
         )
     ctx.exit()
-
-
-# def print_recipe_task(ctx, param, value):
 
 
 @cli.command()
@@ -105,10 +94,9 @@ def dump(in_file):
 @click.pass_context
 def run(ctx, in_file, is_dry):
     """Run tasks by specifying a file or a recipe."""
-    plan = cast(Plan, tomli.load(in_file))
-    click.echo(plan)
 
-    err = check_plan(plan, __recipes__)
+    plan = cast(Plan, tomli.load(in_file))
+    err = check_plan(plan)
     if err:
         click.echo(err)
         ctx.exit()
