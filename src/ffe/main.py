@@ -1,5 +1,6 @@
 from typing import cast
 from ffe.model import Plan, Recipe, __recipes__, check_plan, dry_run
+from ffe.util import ErrMsg
 from . import (
     __version__,
     __package_name__,
@@ -8,16 +9,6 @@ from . import (
 import click
 import tomli
 import toml
-
-
-def print_tasks(ctx, param, value):
-    if not value or ctx.resilient_parsing:
-        return
-    click.echo(param)
-    click.echo(value)
-    tasks = tomli.load(value)
-    click.echo(tasks)
-    ctx.exit()
 
 
 @click.group()
@@ -41,24 +32,43 @@ def cli():
 # 以下是子命令
 
 
-def print_recipe_help(ctx, param, value):
-    if value in __recipes__:
-        r: Recipe = __recipes__[value]()
+def get_recipe(name: str) -> tuple[Recipe | None, ErrMsg]:
+    if name in __recipes__:
+        r: Recipe = __recipes__[name]()
+        return r, ""
+    return None, f"Not found recipe: {name}"
+
+
+def print_recipe_help(name: str) -> None:
+    r, err = get_recipe(name)
+    if err:
+        click.echo(f"{err}\n" 'Use "ffe list -a" to list out all recipes.')    
+    if r:
         click.echo(r.help)
-    else:
-        click.echo(
-            f"not found recipe: {value}\n"
-            'use "-l" or "--list" to list out all registered recipes'
-        )
-    ctx.exit()
 
 
 @cli.command()
+@click.option(
+    "all", "-a", "--all", is_flag=True, help="List out all registered recipes."
+)
+@click.option(
+    "recipe_name",
+    "-r",
+    "--recipe",
+    help="Show more information of the recipe.",
+)
 @click.pass_context
-def list(ctx):
-    """List out all registered recipes."""
-    click.echo(__recipes__.keys())
-    ctx.exit()
+def list(ctx, all, recipe_name):
+    """List out recipes, or show more information of a recipe."""
+
+    if all:
+        click.echo(f"All registered recipes: {', '.join(__recipes__.keys())}")
+        click.echo('Use "ffe list -r <recipe>" to show more about a recipe.')
+        ctx.exit()
+    if not recipe_name:
+        click.echo(ctx.get_help())
+        ctx.exit()
+    print_recipe_help(recipe_name)
 
 
 @cli.command()
@@ -68,12 +78,34 @@ def list(ctx):
     "--file",
     type=click.File("rb"),
     help="Specify a TOML file.",
-    required=True,
 )
-def dump(in_file):
+@click.option(
+    "recipe_name",
+    "-r",
+    "--recipe",
+    help='Specify a recipe. Use "ffe list -a" to show all recipes.',
+)
+@click.pass_context
+def dump(ctx, in_file, recipe_name):
     """Do not run tasks, but print the plan instead."""
-    tasks = toml.dumps(tomli.load(in_file))
-    click.echo(tasks)
+
+    if (not in_file) and (not recipe_name):
+        click.echo(ctx.get_help())
+        ctx.exit()
+
+    plan = Plan()
+
+    if in_file:
+        plan = cast(Plan, tomli.load(in_file))
+    elif recipe_name:
+        plan 
+
+    err = check_plan(plan)
+    if err:
+        click.echo(err)
+        ctx.exit()
+    plan_toml = toml.dumps(plan)
+    click.echo(plan_toml)
 
 
 @cli.command()

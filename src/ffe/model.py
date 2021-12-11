@@ -109,11 +109,11 @@ def check_plan(plan: Plan) -> ErrMsg:
         # 上面已经检查过 key 的存在，因此可以 type:ignore
         if has_global_names:
             plan["tasks"][i]["names"] = plan["global_names"]  # type:ignore
-            plan["global_names"] = []
+            del plan["global_names"]
         if has_global_options:
             for k, v in plan["global_options"].items():  # type:ignore
                 plan["tasks"][i]["options"][k] = v  # type:ignore
-            plan["global_options"] = {}
+            del plan["global_options"]
 
     return ""
 
