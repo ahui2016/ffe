@@ -1,9 +1,9 @@
-from ffe.model import Recipe
-from .__init__ import (
+from typing import cast
+from ffe.model import Plan, Recipe, check_plan
+from . import (
     __version__,
     __package_name__,
     __recipes__,
-    check_tasks,
     dry_run,
     init_recipes,
 )
@@ -52,7 +52,7 @@ def cli():
 def print_recipe_help(ctx, param, value):
     if value in __recipes__:
         r: Recipe = __recipes__[value]()
-        click.echo(r.help())
+        click.echo(r.help)
     else:
         click.echo(
             f"not found recipe: {value}\n"
@@ -82,7 +82,7 @@ def list(ctx):
     required=True,
 )
 def dump(in_file):
-    """Do not run tasks, but print messages instead."""
+    """Do not run tasks, but print the plan instead."""
     tasks = toml.dumps(tomli.load(in_file))
     click.echo(tasks)
 
@@ -105,17 +105,16 @@ def dump(in_file):
 @click.pass_context
 def run(ctx, in_file, is_dry):
     """Run tasks by specifying a file or a recipe."""
-    tasks = tomli.load(in_file)
-    click.echo(tasks)
+    plan = cast(Plan, tomli.load(in_file))
+    click.echo(plan)
 
-    _, err = check_tasks(tasks)
-    click.echo(tasks)
+    err = check_plan(plan, __recipes__)
     if err:
         click.echo(err)
         ctx.exit()
 
     if is_dry is True:
-        dry_run(tasks)
+        dry_run(plan)
 
 
 # 初始化

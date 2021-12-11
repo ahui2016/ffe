@@ -1,13 +1,17 @@
 from abc import ABC, abstractmethod
+from typing import TypedDict
+from . import Recipes
 
 __default_max__ = 9999
 """默认处理文件数量的上限"""
+
+ErrMsg = str
+"""只是一个描述错误内容的简单字符串而已"""
 
 
 class Recipe(ABC):
     def __init__(self) -> None:
         self.is_validated = False
-        self.is_dry_run = False
 
     @property
     @abstractmethod
@@ -31,11 +35,8 @@ class Recipe(ABC):
     @property
     @abstractmethod
     def default_options(self) -> dict:
-        """默认选项
-
-        一般建议包含 dry_run, 但具体可根据需要自由决定。
-        """
-        return dict(dry_run=True)
+        """默认选项，具体项目可根据需要自由决定。"""
+        pass
 
     @abstractmethod
     def validate(self, names: list[str], options: dict) -> None:
@@ -44,8 +45,6 @@ class Recipe(ABC):
         注意：插件制作者必须保证 validate 是安全的，不可对文件进行任何修改。
              包括文件内容、日期、权限等等任何修改都不允许。
         """
-        if "dry_run" in options:
-            self.is_dry_run = options["dry_run"]
         self.is_validated = True
 
     @abstractmethod
@@ -56,12 +55,54 @@ class Recipe(ABC):
         插件制作者必须保证 dry_run 是安全的，不可对文件进行任何修改。
         """
         assert not self.is_validated, "在执行 dry_run 之前必须先执行 validate"
-        print(f"There's no dry_run for {self.name()}.")
+        print(f"There's no dry_run for {self.name}.")
 
     @abstractmethod
     def exec(self) -> None:
         """只有这个方法才真正操作文件，其它方法一律不可操作文件。"""
-        if self.is_dry_run:
-            self.dry_run()
-            return
         assert not self.is_validated, "在执行 exec 之前必须先执行 validate"
+
+
+class Task(TypedDict, total=False):
+    recipe: str
+    names: list[str]
+    options: dict
+
+
+class Plan(TypedDict, total=False):
+    """一个计划可包含一个或多个任务，可与 TOML 文件互相转换。
+
+    global_names, global_options 的优先级高过 task.names, task.options,
+    具体如何体现优先级请看 check_plan 函数。
+    """
+
+    global_names: list[str]
+    global_options: dict
+    tasks: list[Task]
+
+
+def check_plan(plan: Plan, recipes: Recipes) -> ErrMsg:
+    """plan 会被直接修改，返回错误消息（空字符串表示无错误）"""
+
+    if not plan.get("tasks"):  # 如果 tasks 不存在或是空列表
+        return "no task"
+
+    has_global_names = False if not plan.get("global-names") else True
+    has_global_options = False if not plan.get("global-options") else True
+
+    for i, task in enumerate(plan.get("tasks", [])):
+        recipe = task.get("recipe")
+        if not recipe:
+            return "recipe cannot be empty"
+        if recipe not in recipes:
+            return f"not found recipe: {recipe}"
+
+        if has_global_names:
+            plan["tasks"][i]["names"] = plan["global_names"] #type:ignore
+            plan["global_names"] = []
+        if has_global_options:
+            for k, v in plan["global_options"].items():  #type:ignore
+                plan["tasks"][i]["options"][k] = v  #type:ignore
+            plan["global_options"] = {}
+
+    return ""

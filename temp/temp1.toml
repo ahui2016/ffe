@@ -1,11 +1,8 @@
-global-names = [
+global_names = [
   '..\dest\',
   '.\aaa\',
   '.\file1.txt',
 ]
-
-[global-options]
-dry-run = true
 
 [[tasks]]
 recipe = 'swap'

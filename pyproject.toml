@@ -13,7 +13,7 @@ dependencies = [
   "tomli",
   "toml",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8" # because using TypedDict
 dynamic = ["version", "description"]
 
 [project.urls]
