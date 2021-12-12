@@ -1,6 +1,12 @@
 from typing import cast
 from ffe.model import Plan, Recipe, __recipes__, check_plan, dry_run, init_recipes
-from ffe.util import ErrMsg, app_config_file, __recipes_folder__, ensure_config_file, ensure_recipes_folder
+from ffe.util import (
+    ErrMsg,
+    app_config_file,
+    __recipes_folder__,
+    ensure_config_file,
+    ensure_recipes_folder,
+)
 from . import (
     __version__,
     __package_name__,
@@ -82,7 +88,9 @@ def info(ctx, all, recipe_name):
         if not __recipes__:
             click.echo("Cannot find any recipe.\n")
             click.echo(f"Please put some recipes in {__recipes_folder__}\n")
-            click.echo('Use "ffe info --set-recipes-dir <DIRECTORY PATH>" to change the directory contains recipes.\n')
+            click.echo(
+                'Use "ffe info --set-recipes-dir <DIRECTORY PATH>" to change the directory contains recipes.\n'
+            )
             click.echo("Download example recipes at https://github.com/ahui2016/ffe\n")
             ctx.exit()
         click.echo(f"All registered recipes: {', '.join(__recipes__.keys())}")
@@ -162,7 +170,7 @@ def run(ctx, in_file, is_dry):
 
 # 初始化
 ensure_config_file()
-ensure_recipes_folder
+ensure_recipes_folder()
 init_recipes()
 
 if __name__ == "__main__":

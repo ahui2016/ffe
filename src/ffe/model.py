@@ -88,7 +88,20 @@ __recipes__: Recipes = {}
 
 
 def register(recipe: Type[Recipe]):
-    name = recipe().name
+    r = recipe()
+    name = r.name
+
+    # 由于 ABC@abstractmethod 不能确保一个方法是否被设置了 @property,
+    # 因此只要手动检查。
+    if not isinstance(name, str):
+        name = r.name()  # type:ignore
+
+    assert isinstance(r.name, str), f"{name}.name should be a property"
+    assert isinstance(r.help, str), f"{name}.help should be a property"
+    assert isinstance(
+        r.default_options, dict
+    ), f"{name}.default_options should be a property"
+
     assert name not in __recipes__, f"{name} already exists"
     __recipes__[name] = recipe
 
