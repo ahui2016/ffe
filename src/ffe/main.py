@@ -1,10 +1,9 @@
 from typing import cast
-from ffe.model import Plan, Recipe, __recipes__, check_plan, dry_run
-from ffe.util import ErrMsg
+from ffe.model import Plan, Recipe, __recipes__, check_plan, dry_run, init_recipes
+from ffe.util import ErrMsg, app_config_file, __recipes_folder__, ensure_config_file, ensure_recipes_folder
 from . import (
     __version__,
     __package_name__,
-    init_recipes,
 )
 import click
 import tomli
@@ -42,28 +41,52 @@ def get_recipe(name: str) -> tuple[Recipe | None, ErrMsg]:
 def print_recipe_help(name: str) -> None:
     r, err = get_recipe(name)
     if err:
-        click.echo(f"{err}\n" 'Use "ffe list -a" to list out all recipes.')    
+        click.echo(f"{err}\n" 'Use "ffe info -a" to list out all recipes.')
     if r:
         click.echo(r.help)
 
 
+def show_dir(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    click.echo(f"[ffe] {__file__}")
+    click.echo(f"[config] {app_config_file}")
+    click.echo(f"[recipes] {__recipes_folder__}")
+    ctx.exit()
+
+
 @cli.command()
 @click.option(
-    "all", "-a", "--all", is_flag=True, help="List out all registered recipes."
+    "all", "-a", "--all-recipes", is_flag=True, help="List out all registered recipes."
 )
 @click.option(
     "recipe_name",
     "-r",
     "--recipe",
-    help="Show more information of the recipe.",
+    help="Show description of the recipe.",
+)
+@click.option(
+    "-dir",
+    "--directories",
+    is_flag=True,
+    help="Show directories about ffe and recipes.",
+    callback=show_dir,
+    expose_value=False,
+    is_eager=True,
 )
 @click.pass_context
-def list(ctx, all, recipe_name):
-    """List out recipes, or show more information of a recipe."""
+def info(ctx, all, recipe_name):
+    """Get or set information about recipes."""
 
     if all:
+        if not __recipes__:
+            click.echo("Cannot find any recipe.\n")
+            click.echo(f"Please put some recipes in {__recipes_folder__}\n")
+            click.echo('Use "ffe info --set-recipes-dir <DIRECTORY PATH>" to change the directory contains recipes.\n')
+            click.echo("Download example recipes at https://github.com/ahui2016/ffe\n")
+            ctx.exit()
         click.echo(f"All registered recipes: {', '.join(__recipes__.keys())}")
-        click.echo('Use "ffe list -r <recipe>" to show more about a recipe.')
+        click.echo('Use "ffe info -r <recipe>" to show more about a recipe.')
         ctx.exit()
     if not recipe_name:
         click.echo(ctx.get_help())
@@ -83,7 +106,7 @@ def list(ctx, all, recipe_name):
     "recipe_name",
     "-r",
     "--recipe",
-    help='Specify a recipe. Use "ffe list -a" to show all recipes.',
+    help='Specify a recipe. Use "ffe info -a" to show all recipes.',
 )
 @click.pass_context
 def dump(ctx, in_file, recipe_name):
@@ -98,7 +121,7 @@ def dump(ctx, in_file, recipe_name):
     if in_file:
         plan = cast(Plan, tomli.load(in_file))
     elif recipe_name:
-        plan 
+        plan
 
     err = check_plan(plan)
     if err:
@@ -138,6 +161,8 @@ def run(ctx, in_file, is_dry):
 
 
 # 初始化
+ensure_config_file()
+ensure_recipes_folder
 init_recipes()
 
 if __name__ == "__main__":

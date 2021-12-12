@@ -1,7 +1,10 @@
-from abc import ABC, abstractmethod
+import sys
+import importlib.util
+from pathlib import Path
 from typing import Type, TypedDict
+from abc import ABC, abstractmethod
 
-from ffe.util import ErrMsg
+from ffe.util import ErrMsg, __recipes_folder__
 
 
 __default_max__ = 9999
@@ -88,6 +91,21 @@ def register(recipe: Type[Recipe]):
     name = recipe().name
     assert name not in __recipes__, f"{name} already exists"
     __recipes__[name] = recipe
+
+
+def init_recipes():
+    recipes_files = Path(__recipes_folder__).glob("*.py")
+    for file_path in recipes_files:
+        module_name = file_path.stem
+        spec = importlib.util.spec_from_file_location(module_name, file_path)
+
+        assert spec is not None
+        assert spec.loader is not None
+
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+        register(module.__recipe__)
 
 
 def check_plan(plan: Plan) -> ErrMsg:

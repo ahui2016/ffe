@@ -9,9 +9,10 @@ readme = "README.md"
 license = {file = "LICENSE"}
 classifiers = ["License :: OSI Approved :: MIT License"]
 dependencies = [
-  "click",
-  "tomli",
   "toml",
+  "tomli",
+  "click",
+  "appdirs",
 ]
 requires-python = ">=3.8" # because using TypedDict
 dynamic = ["version", "description"]
