@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Type, TypedDict
 from abc import ABC, abstractmethod
 
-from ffe.util import ErrMsg, __recipes_folder__
+from ffe.util import ErrMsg
 
 
 __default_max__ = 9999
@@ -106,8 +106,8 @@ def register(recipe: Type[Recipe]):
     __recipes__[name] = recipe
 
 
-def init_recipes():
-    recipes_files = Path(__recipes_folder__).glob("*.py")
+def init_recipes(folder: str) -> None:
+    recipes_files = Path(folder).glob("*.py")
     for file_path in recipes_files:
         module_name = file_path.stem
         spec = importlib.util.spec_from_file_location(module_name, file_path)

@@ -1,9 +1,10 @@
+from pathlib import Path
 from typing import cast
-from ffe.model import Plan, Recipe, __recipes__, check_plan, dry_run, init_recipes
+from ffe.model import Plan, Recipe, Task, __recipes__, check_plan, dry_run, init_recipes
 from ffe.util import (
     ErrMsg,
+    Settings,
     app_config_file,
-    __recipes_folder__,
     ensure_config_file,
     ensure_recipes_folder,
 )
@@ -61,6 +62,20 @@ def show_dir(ctx, param, value):
     ctx.exit()
 
 
+def set_recipes_dir(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    folder = cast(click.Path, value)
+    with open(app_config_file, "rb") as f:
+        settings = cast(Settings, tomli.load(f))
+        folder_path = Path(folder.__str__()).resolve()
+        settings["recipes_folder"] = folder_path.__str__()
+    with open(app_config_file, "w") as f:
+        toml.dump(settings, f)
+    click.echo(f"OK\n[recipes] {settings['recipes_folder']}")
+    ctx.exit()
+
+
 @cli.command()
 @click.option(
     "all", "-a", "--all-recipes", is_flag=True, help="List out all registered recipes."
@@ -79,6 +94,13 @@ def show_dir(ctx, param, value):
     callback=show_dir,
     expose_value=False,
     is_eager=True,
+)
+@click.option(
+    "--set-recipes",
+    type=click.Path(exists=True),
+    help="Change the location of the directory contains recipes.",
+    callback=set_recipes_dir,
+    expose_value=False,
 )
 @click.pass_context
 def info(ctx, all, recipe_name):
@@ -125,11 +147,19 @@ def dump(ctx, in_file, recipe_name):
         ctx.exit()
 
     plan = Plan()
-
     if in_file:
         plan = cast(Plan, tomli.load(in_file))
-    elif recipe_name:
-        plan
+    else:
+        r, err = get_recipe(recipe_name)
+        if err:
+            click.echo(err)
+            ctx.exit()
+        if r:
+            plan = Plan(tasks=[Task(
+                recipe=r.name,
+                names=[],  # TODO
+                options=r.default_options
+            )])
 
     err = check_plan(plan)
     if err:
@@ -170,8 +200,8 @@ def run(ctx, in_file, is_dry):
 
 # 初始化
 ensure_config_file()
-ensure_recipes_folder()
-init_recipes()
+__recipes_folder__ = ensure_recipes_folder()
+init_recipes(__recipes_folder__)
 
 if __name__ == "__main__":
     cli(obj={})
