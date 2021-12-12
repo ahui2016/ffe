@@ -1,4 +1,4 @@
-from ffe.model import Recipe
+from ffe.model import Recipe, ErrMsg
 
 swap_suffix = "1"
 """临时文件名的后缀"""
@@ -31,8 +31,8 @@ class Swap(Recipe):
     def default_options(self) -> dict:
         return dict(verbose=True)
 
-    def validate(self, names: list[str], options: dict) -> None:
-        pass
+    def validate(self, names: list[str], options: dict) -> ErrMsg:
+        return ""
 
     def dry_run(self) -> None:
         return super().dry_run()

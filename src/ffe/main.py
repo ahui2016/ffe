@@ -1,8 +1,16 @@
 from pathlib import Path
 from typing import cast
-from ffe.model import Plan, Recipe, Task, __recipes__, check_plan, dry_run, init_recipes
-from ffe.util import (
+from ffe.model import (
     ErrMsg,
+    Plan,
+    Recipe,
+    Task,
+    __recipes__,
+    check_plan,
+    dry_run,
+    init_recipes,
+)
+from ffe.util import (
     Settings,
     app_config_file,
     ensure_config_file,
@@ -26,10 +34,6 @@ import toml
     message="%(prog)s version: %(version)s",
 )
 def cli():
-    # ctx.ensure_object(dict)
-    # if file is not None:
-    #     tasks = tomli.load(file)
-    #     ctx.obj["tasks"] = tasks
     pass
 
 
@@ -111,7 +115,7 @@ def info(ctx, all, recipe_name):
             click.echo("Cannot find any recipe.\n")
             click.echo(f"Please put some recipes in {__recipes_folder__}\n")
             click.echo(
-                'Use "ffe info --set-recipes-dir <DIRECTORY PATH>" to change the directory contains recipes.\n'
+                'Use "ffe info --set-recipes <DIRECTORY PATH>" to change the directory contains recipes.\n'
             )
             click.echo("Download example recipes at https://github.com/ahui2016/ffe\n")
             ctx.exit()
@@ -155,11 +159,9 @@ def dump(ctx, in_file, recipe_name):
             click.echo(err)
             ctx.exit()
         if r:
-            plan = Plan(tasks=[Task(
-                recipe=r.name,
-                names=[],  # TODO
-                options=r.default_options
-            )])
+            plan = Plan(
+                tasks=[Task(recipe=r.name, names=[], options=r.default_options)]  # TODO
+            )
 
     err = check_plan(plan)
     if err:

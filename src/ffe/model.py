@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Type, TypedDict
 from abc import ABC, abstractmethod
 
-from ffe.util import ErrMsg
+ErrMsg = str
+"""一个描述错误内容的简单字符串，空字符串表示无错误。"""
 
 
 __default_max__ = 9999
@@ -41,13 +42,14 @@ class Recipe(ABC):
         pass
 
     @abstractmethod
-    def validate(self, names: list[str], options: dict) -> None:
+    def validate(self, names: list[str], options: dict) -> ErrMsg:
         """检查参数并进行初始化。
 
         注意：插件制作者必须保证 validate 是安全的，不可对文件进行任何修改。
              包括文件内容、日期、权限等等任何修改都不允许。
         """
         self.is_validated = True
+        return ""
 
     @abstractmethod
     def dry_run(self) -> None:
@@ -155,3 +157,23 @@ def dry_run(plan: Plan):
         # check_plan 函数已经检查过 key 的存在，因此可以 type:ignore
         r: Recipe = __recipes__[task["recipe"]]()  # type:ignore
         r.dry_run()
+
+
+def names_limit(names: list[str], min: int, max: int) -> tuple[list[str], ErrMsg]:
+    """清除 names 里的空字符串，并且限定其上下限。"""
+
+    temp = map(lambda name: name.strip(), names)
+    names = list(filter(lambda name: name != "", temp))
+    msg = ""
+    size = len(names)
+    if min == max and size != min:
+        msg = f"exactly {min} filenames"
+    elif size < min:
+        msg = f"filenames.length < {min}"
+    elif size > max:
+        msg = f"filenames.length > {max}"
+
+    if msg:
+        return [], f"expected: {msg}, got: {names}"
+    else:
+        return names, ""

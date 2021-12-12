@@ -4,9 +4,6 @@ from appdirs import AppDirs
 import toml
 import tomli
 
-ErrMsg = str
-"""只是一个描述错误内容的简单字符串而已"""
-
 
 class Settings(TypedDict):
     # 暂时只有一个项目，后续根据需要再添加。
