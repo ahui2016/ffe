@@ -1,0 +1,35 @@
+# 可以添加多个任务（可以是不同的 recipe），将会按顺序依次执行。
+
+# 第一个任务
+[[tasks]]        # 注意这里是双层方括号
+recipe = "swap"  # 对调两个文件名（或文件夹名）
+names = [
+  'file1.txt',
+  'file2.txt',
+]
+
+[tasks.options]  # options 是 Dict[str, Any]
+verbose = true
+
+# 第二个任务
+[[tasks]]
+recipe = "swap"
+names = [
+  'file2.txt',
+  'file3.txt',
+]
+
+[tasks.options]
+verbose = false  # 第二个任务不显示详细过程
+
+
+# 假设有三个文件
+#    file1.txt 的内容是 111
+#    file2.txt 的内容是 222
+#    file3.txt 的内容是 333
+
+# 用 gof 指定内容如上所示的 YAML 文件运行后，应该变成
+#    file1.txt 的内容是 222
+#    file2.txt 的内容是 333
+#    file3.txt 的内容是 111
+

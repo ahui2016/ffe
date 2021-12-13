@@ -1,8 +1,13 @@
 global_names = [
   '..\dest\',
   '.\aaa\',
-  '.\file1.txt',
+  '  ',
 ]
+
+[global_options]
+verbose = true
+delete = true
+add = false
 
 [[tasks]]
 recipe = 'swap'
@@ -11,3 +16,10 @@ names = []
 [tasks.options]
 add = true
 delete = false
+
+[[tasks]]
+recipe = 'swap'
+names = []
+
+[tasks.options]
+update = true

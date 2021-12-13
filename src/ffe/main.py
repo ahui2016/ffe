@@ -1,14 +1,13 @@
 from pathlib import Path
-from typing import cast
+from typing import Any, cast
 from ffe.model import (
     ErrMsg,
-    Plan,
     Recipe,
     Task,
     __recipes__,
     check_plan,
-    dry_run,
     init_recipes,
+    new_plan,
 )
 from ffe.util import (
     Settings,
@@ -23,6 +22,13 @@ from . import (
 import click
 import tomli
 import toml
+
+
+def check(ctx: click.Context, err: ErrMsg) -> None:
+    """检查 err, 有错误则打印并终止程序，无错误则什么都不用做。"""
+    if err:
+        click.echo(err)
+        ctx.exit()
 
 
 @click.group()
@@ -142,32 +148,40 @@ def info(ctx, all, recipe_name):
     "--recipe",
     help='Specify a recipe. Use "ffe info -a" to show all recipes.',
 )
+@click.argument("names", nargs=-1, type=click.Path(exists=True))
 @click.pass_context
-def dump(ctx, in_file, recipe_name):
-    """Do not run tasks, but print the plan instead."""
+def dump(ctx, in_file, recipe_name, names):
+    """Do not run tasks, but print the plan instead.
+
+    [NAMES] are file/folder paths(zero or many).
+    """
 
     if (not in_file) and (not recipe_name):
         click.echo(ctx.get_help())
         ctx.exit()
 
-    plan = Plan()
+    plan = new_plan()
     if in_file:
-        plan = cast(Plan, tomli.load(in_file))
+        plan = new_plan(tomli.load(in_file))
     else:
         r, err = get_recipe(recipe_name)
-        if err:
-            click.echo(err)
-            ctx.exit()
+        check(ctx, err)
         if r:
-            plan = Plan(
-                tasks=[Task(recipe=r.name, names=[], options=r.default_options)]  # TODO
-            )
+            plan["tasks"] = [
+                Task(
+                    recipe=r.name,
+                    names=list(map(lambda name: name.__str__(), names)),
+                    options=r.default_options,
+                )
+            ]
 
-    err = check_plan(plan)
-    if err:
-        click.echo(err)
-        ctx.exit()
-    plan_toml = toml.dumps(plan)
+    check(ctx, check_plan(plan))  # 这里会把 global_names 和 global_options 清空（放进 tasks 里）
+
+    obj = cast(Any, plan)  # 无法删除 TypedDict 的 key, 因此转换成 Any
+    del obj["global_names"]
+    del obj["global_options"]
+
+    plan_toml = toml.dumps(obj)
     click.echo(plan_toml)
 
 
@@ -180,24 +194,68 @@ def dump(ctx, in_file, recipe_name):
     help="Specify a TOML file.",
 )
 @click.option(
+    "recipe_name",
+    "-r",
+    "--recipe",
+    help='Specify a recipe. Use "ffe info -a" to show all recipes.',
+)
+@click.option(
     "is_dry",
     "-dry",
     "--dry-run",
     is_flag=True,
     help="Predict the results of a real run, based on a test run without modifying files.",
 )
+@click.argument("names", nargs=-1, type=click.Path(exists=True))
 @click.pass_context
-def run(ctx, in_file, is_dry):
-    """Run tasks by specifying a file or a recipe."""
+def run(ctx, in_file, recipe_name, is_dry, names):
+    """Run tasks by specifying a file or a recipe.
 
-    plan = cast(Plan, tomli.load(in_file))
-    err = check_plan(plan)
-    if err:
-        click.echo(err)
+    [NAMES] are file/folder paths(zero or many).
+    """
+
+    if (not in_file) and (not recipe_name):
+        click.echo(ctx.get_help())
         ctx.exit()
 
-    if is_dry is True:
-        dry_run(plan)
+    plan = new_plan()
+    if in_file:
+        plan = new_plan(tomli.load(in_file))
+    else:
+        rcp, err = get_recipe(recipe_name)
+        check(ctx, err)
+        if rcp:
+            plan["tasks"] = [
+                Task(
+                    recipe=rcp.name,
+                    names=list(map(lambda name: name.__str__(), names)),
+                    options=rcp.default_options,
+                )
+            ]
+
+    check(ctx, check_plan(plan))
+
+    # 提醒：在执行以下代码之前，应先执行 check_plan 函数。
+    if is_dry:
+        click.echo("\n** It's a dry run, not a real run. **\n")
+
+    for task in plan["tasks"]:
+        r: Recipe = __recipes__[task["recipe"]]()
+        err = r.validate(task["names"], task["options"])
+        if err:
+            click.echo(err)
+            click.echo('Use "ffe run --help" to show usages of this command.')
+            click.echo('Use "ffe info -r <recipe>" to show details of the recipe.')
+            ctx.exit()
+        if is_dry:
+            check(ctx, r.dry_run())
+        else:
+            check(ctx, r.exec())
+
+    if is_dry:
+        click.echo("The dry run has been completed.\n")
+    else:
+        click.echo("All tasks have been completed.\n")
 
 
 # 初始化
