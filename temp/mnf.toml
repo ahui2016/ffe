@@ -1,0 +1,8 @@
+[[tasks]]
+recipe = "move-new-files"
+names = [ ".\\temp\\", ".",]
+
+[tasks.options]
+n = 1
+suffix = ".md"
+

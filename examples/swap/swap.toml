@@ -2,7 +2,7 @@
 
 # 第一个任务
 [[tasks]]        # 注意这里是双层方括号
-recipe = "swap"  # 对调两个文件名（或文件夹名）
+recipe = "swap"  # 对调两个文件名
 names = [
   'file1.txt',
   'file2.txt',

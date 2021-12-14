@@ -8,8 +8,8 @@ ErrMsg = str
 """一个描述错误内容的简单字符串，空字符串表示无错误。"""
 
 
-__default_max__ = 9999
-"""默认处理文件数量的上限"""
+__input_files_max__ = 99
+"""默认文件/文件夹数量上限(不是实际处理数量，而是输入参数个数)"""
 
 
 class Recipe(ABC):
@@ -177,7 +177,9 @@ def are_names_exist(names: list[str]) -> ErrMsg:
     return ""
 
 
-def names_limit(names: list[str], min: int, max: int) -> tuple[list[str], ErrMsg]:
+def names_limit(
+    names: list[str], min: int, max: int = __input_files_max__
+) -> tuple[list[str], ErrMsg]:
     """清除 names 里的空字符串，并且限定其上下限。"""
 
     temp = map(lambda name: name.strip(), names)

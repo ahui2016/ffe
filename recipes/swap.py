@@ -8,7 +8,7 @@ suffix_limit = 20
 """限制最多可连续添加多少次 suffix, 避免文件名无限变长"""
 
 
-# 关于具体如何实现一个　Recipe, 请参考项目源码中的 model.py
+# 关于具体如何实现一个 Recipe, 请参考项目源码中的 model.py
 class Swap(Recipe):
     """对调两个文件名
 
@@ -24,8 +24,8 @@ class Swap(Recipe):
     def help(self) -> str:
         return """
 [[tasks]]
-recipe = "swap"  # 对调两个文件名（或文件夹名）
-names = [        # 文件名（或文件夹名）数量必须是正好两个
+recipe = "swap"  # 对调两个文件名
+names = [        # 文件名数量必须是正好两个
   'file1.txt',
   'file2.txt',
 ]
@@ -42,12 +42,23 @@ verbose = true  # 显示或不显示程序执行的详细过程
         return dict(verbose=True)
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
-        self.names, err = names_limit(names, 2, 2)
+        """初步检查参数（比如文件数量与是否存在），并初始化以下项目：
+
+        - self.names
+        - self.verbose
+        """
+
+        names, err = names_limit(names, 2, 2)
         if err:
             return err
         err = are_names_exist(names)
         if err:
             return err
+
+        self.name1 = Path(names[0])
+        self.name2 = Path(names[1])
+        if self.name1.is_dir() or self.name2.is_dir():
+            return f"{names[0]} and {names[1]} should be both files."
 
         # 检查选项，同时初始化选项，以便后续在 dry_run 和 exec 中使用。
         self.verbose = options.get("verbose", True)
@@ -59,41 +70,31 @@ verbose = true  # 显示或不显示程序执行的详细过程
     def dry_run(self) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
-        print(f"Start to swap {self.names[0]} and {self.names[1]}")
-        temp, err = temp_name(self.names[0])
+        print(f"Start to swap {self.name1} and {self.name2}")
+        temp, err = temp_name(self.name1)
         if err:
             return err
         print(f"-- found a safe temp name: {temp}")
-        print(f"-- rename {self.names[0]} to {temp}")
-        print(f"-- rename {self.names[1]} to {self.names[0]}")
-        print(f"-- rename {temp} to {self.names[1]}")
-        print(f"swap files OK: {self.names[0]} and {self.names[1]}\n")
+        print(f"-- rename {self.name1} to {temp}")
+        print(f"-- rename {self.name2} to {self.name1}")
+        print(f"-- rename {temp} to {self.name2}")
+        print(f"swap files OK: {self.name1} and {self.name2}\n")
         return ""
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
 
-        if self.verbose:
-            print(f"Start to swap {self.names[0]} and {self.names[1]}")
-
-        temp, err = temp_name(self.names[0])
+        temp, err = temp_name(self.name1)
         if err:
             return err
+        self.name1.rename(temp)
+        self.name2.rename(self.name1)
+        temp.rename(self.name2)
 
         if self.verbose:
-            print(f"-- found a safe temp name: {temp}")
-            print(f"-- rename {self.names[0]} to {temp}")
-        Path(self.names[0]).rename(temp)
-
-        if self.verbose:
-            print(f"-- rename {self.names[1]} to {self.names[0]}")
-        Path(self.names[1]).rename(self.names[0])
-
-        if self.verbose:
-            print(f"-- rename {temp} to {self.names[1]}")
-        temp.rename(self.names[1])
-
-        print(f"swap files OK: {self.names[0]} and {self.names[1]}\n")
+            self.dry_run()
+        else:
+            print(f"swap files OK: {self.name1} and {self.name2}\n")
         return ""
 
 
@@ -103,11 +104,10 @@ verbose = true  # 显示或不显示程序执行的详细过程
 __recipe__ = Swap
 
 
-def temp_name(name: str) -> tuple[Path, ErrMsg]:
-    temp = Path(name)
+def temp_name(name: Path) -> tuple[Path, ErrMsg]:
     for _ in range(suffix_limit):
-        stem = temp.stem + suffix
-        temp = temp.with_stem(stem)
-        if not temp.exists():
-            return temp, ""
-    return temp, f"cannot find a proper temp name, last try: {temp}"
+        stem = name.stem + suffix
+        name = name.with_stem(stem)
+        if not name.exists():
+            return name, ""
+    return name, f"cannot find a proper temp name, last try: {name}"
