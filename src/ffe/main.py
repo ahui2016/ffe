@@ -253,7 +253,7 @@ def run(ctx, in_file, recipe_name, is_dry, names):
             check(ctx, r.exec())
 
     if is_dry:
-        click.echo("The dry run has been completed.\n")
+        click.echo("\nThe dry run has been completed.\n")
     else:
         click.echo("All tasks have been completed.\n")
 
