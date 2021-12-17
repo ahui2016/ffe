@@ -6,15 +6,15 @@ import tomli
 
 
 class Settings(TypedDict):
-    # 暂时只有一个项目，后续根据需要再添加。
     recipes_folder: str
+    http_proxy: str
 
 
 app_dirs = AppDirs("ffe", "github-ahui2016")
 app_config_dir = Path(app_dirs.user_config_dir)
 app_config_file = app_config_dir.joinpath("ffe-config.toml")
 default_recipes_dir = Path(app_dirs.user_data_dir).joinpath("recipes").__str__()
-default_settings = Settings(recipes_folder=default_recipes_dir)
+default_settings = Settings(recipes_folder=default_recipes_dir, http_proxy="")
 
 
 def ensure_config_file() -> None:
@@ -30,3 +30,9 @@ def ensure_recipes_folder() -> str:
         r_folder = settings["recipes_folder"]
         Path(r_folder).mkdir(parents=True, exist_ok=True)
         return r_folder
+
+
+def get_config() -> Settings:
+    with open(app_config_file, "rb") as f:
+        settings = cast(Settings, tomli.load(f))
+    return settings

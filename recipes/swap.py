@@ -91,6 +91,7 @@ verbose = true  # 显示或不显示程序执行的详细过程
         self.name2.rename(self.name1)
         temp.rename(self.name2)
 
+        # 这个插件本来不需要 verbose, 只是为了当作使用 options 的示例，因此简单处理。
         if self.verbose:
             self.dry_run()
         else:

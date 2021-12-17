@@ -1,4 +1,6 @@
+import requests
 from pathlib import Path
+from urllib.parse import urlparse
 from typing import Any, cast
 from ffe.model import (
     ErrMsg,
@@ -63,12 +65,16 @@ def print_recipe_help(name: str) -> None:
         click.echo(r.help)
 
 
-def show_dir(ctx, param, value):
+def show_config(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
+    with open(app_config_file, "rb") as f:
+        settings = cast(Settings, tomli.load(f))
+
     click.echo(f"[ffe] {__file__}")
     click.echo(f"[config] {app_config_file}")
-    click.echo(f"[recipes] {__recipes_folder__}")
+    click.echo(f"[recipes] {settings['recipes_folder']}")
+    click.echo(f'[http_proxy] {settings["http_proxy"]}')
     ctx.exit()
 
 
@@ -86,6 +92,18 @@ def set_recipes_dir(ctx, param, value):
     ctx.exit()
 
 
+def set_http_proxy(ctx, param, value):
+    if not value or ctx.resilient_parsing:
+        return
+    with open(app_config_file, "rb") as f:
+        settings = cast(Settings, tomli.load(f))
+        settings["http_proxy"] = value
+    with open(app_config_file, "w") as f:
+        toml.dump(settings, f)
+    click.echo(f"OK\n[http_proxy] {settings['http_proxy']}")
+    ctx.exit()
+
+
 @cli.command()
 @click.option(
     "all", "-a", "--all-recipes", is_flag=True, help="List out all registered recipes."
@@ -97,11 +115,11 @@ def set_recipes_dir(ctx, param, value):
     help="Show description of the recipe.",
 )
 @click.option(
-    "-dir",
-    "--directories",
+    "-cfg",
+    "--config",
     is_flag=True,
-    help="Show directories about ffe and recipes.",
-    callback=show_dir,
+    help="Show configurations about ffe and recipes.",
+    callback=show_config,
     expose_value=False,
     is_eager=True,
 )
@@ -110,6 +128,12 @@ def set_recipes_dir(ctx, param, value):
     type=click.Path(exists=True),
     help="Change the location of the directory contains recipes.",
     callback=set_recipes_dir,
+    expose_value=False,
+)
+@click.option(
+    "--set-http-proxy",
+    help="Set the http_proxy for requests.",
+    callback=set_http_proxy,
     expose_value=False,
 )
 @click.pass_context
@@ -132,6 +156,51 @@ def info(ctx, all, recipe_name):
         click.echo(ctx.get_help())
         ctx.exit()
     print_recipe_help(recipe_name)
+
+
+@cli.command()
+@click.option(
+    "download",
+    "-d",
+    "--download-only",
+    is_flag=True,
+    help="Download the recipe and print its content, do not install it.",
+)
+@click.option(
+    "install",
+    "-i",
+    "--install",
+    is_flag=True,
+    help="Install the recipe. Warning: Please inspect before installing.",
+)
+@click.option(
+    "force", "-f", "--force", is_flag=True, help="Force install/update the recipe."
+)
+@click.argument("url", nargs=1)
+@click.pass_context
+def install(ctx, download, install, force, url):
+    """Install a recipe from a url.
+
+    Warning: Please download and inspect the recipe before installing it.
+    提醒：请先下载 url 指向的文件，检查没有恶意代码后再安装,
+         因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码（自动 import）。
+    """
+    with open(app_config_file, "rb") as f:
+        settings = cast(Settings, tomli.load(f))
+
+    proxies = None
+    if settings["http_proxy"]:
+        proxies = dict(
+            http=settings["http_proxy"],
+            https=settings["http_proxy"],
+        )
+
+    file_path = urlparse(url).path
+    if not force and Path(file_path).suffix != ".py":
+        click.echo('It seem not a python file, add the "-f" flag to force install it.')
+    resp = requests.get(url, proxies=proxies)
+    resp.raise_for_status()
+    click.echo(resp.headers)
 
 
 @cli.command()

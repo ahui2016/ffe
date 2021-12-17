@@ -13,7 +13,7 @@ dependencies = [
   "tomli",
   "click",
   "appdirs",
-  "humanfriendly"
+  "requests"
 ]
 requires-python = ">=3.8" # because using TypedDict
 dynamic = ["version", "description"]

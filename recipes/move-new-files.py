@@ -1,5 +1,5 @@
-import shutil
 from humanfriendly import format_size
+import shutil
 from pathlib import Path
 from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
 
@@ -9,6 +9,8 @@ from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
     st_ctime:
         the time of most recent metadata change on Unix,
         the time of creation on Windows, expressed in seconds.
+
+使用 shutil.move 来移动文件，因此会先尝试改名，改名失败再进行复制和删除操作。
 """
 
 
@@ -38,6 +40,7 @@ suffix = ".jpg"         # 指定文件名的末尾，空字符串表示不限
 overwrite = false       # 是否覆盖同名文件
 
 # 注意：本插件在设计上并未对移动大量文件的场景进行优化，建议只用来移动少量文件。
+# dependencies = ["humanfriendly"]
 """
 
     @property  # 注意: 必须有 @property
@@ -76,7 +79,7 @@ overwrite = false       # 是否覆盖同名文件
         self.is_validated = True
         return ""
 
-    def dry_run(self) -> ErrMsg:
+    def dry_run(self, really_move: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         print(f"Move files from [{self.src_dir}] to [{self.target_dir}]")
@@ -88,11 +91,12 @@ overwrite = false       # 是否覆盖同名文件
         if free_space <= files_size:
             return f"Not enough space in {self.target_dir}"
 
-        print_and_move(Path(self.target_dir), src_files, self.overwrite)
+        print_and_move(Path(self.target_dir), src_files, self.overwrite, really_move)
         return ""
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
+        self.dry_run(really_move=True)
         return ""
 
     def get_new_files(self) -> tuple[list[Path], int, int]:
