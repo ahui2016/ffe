@@ -29,7 +29,7 @@ import toml
 def check(ctx: click.Context, err: ErrMsg) -> None:
     """检查 err, 有错误则打印并终止程序，无错误则什么都不用做。"""
     if err:
-        click.echo(err)
+        click.echo(f"Error: {err}")
         ctx.exit()
 
 
@@ -60,7 +60,7 @@ def get_recipe(name: str) -> tuple[Recipe | None, ErrMsg]:
 def print_recipe_help(name: str) -> None:
     r, err = get_recipe(name)
     if err:
-        click.echo(f"{err}\n" 'Use "ffe info -a" to list out all recipes.')
+        click.echo(f"Error: {err}\n" 'Use "ffe info -a" to list out all recipes.')
     if r:
         click.echo(r.help)
 
@@ -151,12 +151,14 @@ def info(ctx, all, recipe_name):
 
     if all:
         if not __recipes__:
-            click.echo("Cannot find any recipe.\n")
+            click.echo("Error: Cannot find any recipe.\n")
             click.echo(f"Please put some recipes in {__recipes_folder__}\n")
             click.echo(
                 'Use "ffe info --set-recipes <DIRECTORY PATH>" to change the directory contains recipes.\n'
             )
-            click.echo("Download example recipes at https://github.com/ahui2016/ffe\n")
+            click.echo(
+                'Use "ffe install -i  https://github.com/ahui2016/ffe/raw/main/recipes/swap.py" to download an example recipe\n'
+            )
             ctx.exit()
         click.echo(f"All registered recipes: {', '.join(__recipes__.keys())}")
         click.echo('Use "ffe info -r <recipe>" to show more about a recipe.')
@@ -188,12 +190,26 @@ def info(ctx, all, recipe_name):
 @click.argument("url", nargs=1)
 @click.pass_context
 def install(ctx, download, install, force, url):
-    """Install a recipe from a url.
+    """Install recipes from an url.
 
-    Warning: Please download and inspect the recipe before installing it.
-    提醒：请先下载 url 指向的文件，检查没有恶意代码后再安装,
-         因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码（自动 import）。
+    [URL] is a url point to a ".py" or ".toml" file.
+
+    Warning: Please download and inspect recipes before installing them.
+    提醒：请先下载 url 指向的文件，检查没有恶意代码后再安装，因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码（自动 import）。
     """
+    if not download and not install:
+        click.echo(
+            'Error: Missing option "-d" or "-i", use "ffe install --help" to learn more.'
+        )
+        ctx.exit()
+
+    file_path = Path(urlparse(url).path)
+    if not force and file_path.suffix != ".py":
+        click.echo(
+            'Warning: It seem not a python file, add the "-f" flag to force install it.'
+        )
+        ctx.exit()
+
     with open(app_config_file, "rb") as f:
         settings = cast(Settings, tomli.load(f))
 
@@ -204,12 +220,17 @@ def install(ctx, download, install, force, url):
             https=settings["http_proxy"],
         )
 
-    file_path = urlparse(url).path
-    if not force and Path(file_path).suffix != ".py":
-        click.echo('It seem not a python file, add the "-f" flag to force install it.')
     resp = requests.get(url, proxies=proxies)
     resp.raise_for_status()
-    click.echo(resp.headers)
+
+    if download:
+        click.echo(resp.text)
+        ctx.exit()
+
+    if install:
+        dst = Path(__recipes_folder__).joinpath(file_path.name)
+        click.echo(dst)
+        # with open()
 
 
 @cli.command()
@@ -321,7 +342,7 @@ def run(ctx, in_file, recipe_name, is_dry, names):
         r: Recipe = __recipes__[task["recipe"]]()
         err = r.validate(task["names"], task["options"])
         if err:
-            click.echo(err)
+            click.echo(f"Error: {err}")
             click.echo('Use "ffe run --help" to show usages of this command.')
             click.echo('Use "ffe info -r <recipe>" to show details of the recipe.')
             ctx.exit()

@@ -1,0 +1,4 @@
+recipes = [
+   'https://github.com/ahui2016/ffe/raw/main/recipes/swap.py',
+   'https://github.com/ahui2016/ffe/raw/main/recipes/move-new-files.py',
+]
