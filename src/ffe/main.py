@@ -1,4 +1,3 @@
-import requests
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Any, cast
@@ -16,6 +15,8 @@ from ffe.util import (
     app_config_file,
     ensure_config_file,
     ensure_recipes_folder,
+    get_proxies,
+    request,
 )
 from . import (
     __version__,
@@ -197,11 +198,19 @@ def install(ctx, download, install, force, url):
     Warning: Please download and inspect recipes before installing them.
     提醒：请先下载 url 指向的文件，检查没有恶意代码后再安装，因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码（自动 import）。
     """
+
     if not download and not install:
         click.echo('Error: Missing option "-d" or "-i"')
         click.echo('Try "ffe install --help" for help.')
         ctx.exit()
 
+    proxies = get_proxies()
+    if download:
+        resp = request(url, proxies)
+        click.echo(resp.text)
+        ctx.exit()
+
+    # if install:
     file_path = Path(urlparse(url).path)
     suffix = file_path.suffix.lower()
     if not force and file_path.suffix not in [".py", ".toml"]:
@@ -209,6 +218,7 @@ def install(ctx, download, install, force, url):
             'Warning: It seem not a python file, retry with "-f" to force install it.'
         )
         ctx.exit()
+
     dst = Path(__recipes_folder__).joinpath(file_path.name)
     if dst.exists() and not force:
         click.echo(
@@ -216,47 +226,30 @@ def install(ctx, download, install, force, url):
         )
         ctx.exit()
 
-    with open(app_config_file, "rb") as f:
-        settings = cast(Settings, tomli.load(f))
-
-    proxies = None
-    if settings["use_proxy"] and settings["http_proxy"]:
-        proxies = dict(
-            http=settings["http_proxy"],
-            https=settings["http_proxy"],
-        )
-
-    resp = requests.get(url, proxies=proxies)
-    resp.raise_for_status()
-
-    if download:
-        click.echo(resp.text)
+    resp = request(url, proxies)
+    if suffix == ".py":
+        with open(dst, "wb") as f:
+            f.write(resp.content)
+        click.echo("OK.")
         ctx.exit()
 
-    if install:
-        if suffix == ".py":
-            with open(dst, "wb") as f:
-                f.write(resp.content)
-            click.echo("OK.")
+    if suffix == ".toml":
+        click.echo("Start to install a list of recipes.")
+        click.echo("提醒：安装前应先审查代码，如未审查则在安装后暂时不要使用任何 ffe 命令，审查完再使用。")
+        recipe_list = tomli.loads(resp.text).get("recipes", [])
+        if not recipe_list:
+            click.echo(f"{url} has no recipes")
             ctx.exit()
-
-        if suffix == ".toml":
-            click.echo('Start to install a list of recipes.')
-            recipe_list = tomli.loads(resp.text).get("recipes", [])
-            if not recipe_list:
-                click.echo(f'{url} has no recipes')
-                ctx.exit()
-            for r_url in recipe_list:
-                filename = Path(urlparse(r_url).path).name
-                dst = Path(__recipes_folder__).joinpath(filename)
-                if dst.exists() and not force:
-                    click.echo(f'skip  : {r_url}')
-                else:
-                    resp = requests.get(r_url, proxies=proxies)
-                    resp.raise_for_status()
-                    click.echo(f'install: {r_url}')
-                    with open(dst, "wb") as f:
-                        f.write(resp.content)
+        for r_url in recipe_list:
+            filename = Path(urlparse(r_url).path).name
+            dst = Path(__recipes_folder__).joinpath(filename)
+            if dst.exists() and not force:
+                click.echo(f"skip  : {r_url}")
+            else:
+                resp = request(r_url, proxies)
+                click.echo(f"install: {r_url}")
+                with open(dst, "wb") as f:
+                    f.write(resp.content)
 
 
 @cli.command()

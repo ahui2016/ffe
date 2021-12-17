@@ -3,6 +3,7 @@ from typing import TypedDict, cast
 from appdirs import AppDirs
 import toml
 import tomli
+import requests
 
 
 class Settings(TypedDict):
@@ -39,3 +40,21 @@ def get_config() -> Settings:
     with open(app_config_file, "rb") as f:
         settings = cast(Settings, tomli.load(f))
     return settings
+
+
+def get_proxies() -> dict | None:
+    settings = get_config()
+    proxies = None
+    if settings["use_proxy"] and settings["http_proxy"]:
+        proxies = dict(
+            http=settings["http_proxy"],
+            https=settings["http_proxy"],
+        )
+    return proxies
+
+
+def request(url: str, proxies: dict | None) -> requests.Response:
+    """下载文件，如果用户设置了代理则采用代理"""
+    resp = requests.get(url, proxies=proxies)
+    resp.raise_for_status()
+    return resp
