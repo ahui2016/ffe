@@ -8,13 +8,16 @@ import tomli
 class Settings(TypedDict):
     recipes_folder: str
     http_proxy: str
+    use_proxy: bool
 
 
 app_dirs = AppDirs("ffe", "github-ahui2016")
 app_config_dir = Path(app_dirs.user_config_dir)
 app_config_file = app_config_dir.joinpath("ffe-config.toml")
 default_recipes_dir = Path(app_dirs.user_data_dir).joinpath("recipes").__str__()
-default_settings = Settings(recipes_folder=default_recipes_dir, http_proxy="")
+default_settings = Settings(
+    recipes_folder=default_recipes_dir, http_proxy="", use_proxy=True
+)
 
 
 def ensure_config_file() -> None:

@@ -75,6 +75,7 @@ def show_config(ctx, param, value):
     click.echo(f"[config] {app_config_file}")
     click.echo(f"[recipes] {settings['recipes_folder']}")
     click.echo(f'[http_proxy] {settings["http_proxy"]}')
+    click.echo(f'[use_proxy] {settings["use_proxy"]}')
     ctx.exit()
 
 
@@ -95,12 +96,20 @@ def set_recipes_dir(ctx, param, value):
 def set_http_proxy(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
+    value = cast(str, value).lower()
     with open(app_config_file, "rb") as f:
         settings = cast(Settings, tomli.load(f))
-        settings["http_proxy"] = value
+        if value == "off":
+            settings["use_proxy"] = False
+        elif value == "on":
+            settings["use_proxy"] = True
+        else:
+            settings["http_proxy"] = value
     with open(app_config_file, "w") as f:
         toml.dump(settings, f)
-    click.echo(f"OK\n[http_proxy] {settings['http_proxy']}")
+    click.echo("OK")
+    click.echo(f"[http_proxy] {settings['http_proxy']}")
+    click.echo(f'[use_proxy] {settings["use_proxy"]}')
     ctx.exit()
 
 
@@ -132,7 +141,7 @@ def set_http_proxy(ctx, param, value):
 )
 @click.option(
     "--set-http-proxy",
-    help="Set the http_proxy for requests.",
+    help='Set the http_proxy for requests. You can set it to "ON" or "OFF" too.',
     callback=set_http_proxy,
     expose_value=False,
 )
@@ -189,7 +198,7 @@ def install(ctx, download, install, force, url):
         settings = cast(Settings, tomli.load(f))
 
     proxies = None
-    if settings["http_proxy"]:
+    if settings["use_proxy"] and settings["http_proxy"]:
         proxies = dict(
             http=settings["http_proxy"],
             https=settings["http_proxy"],
