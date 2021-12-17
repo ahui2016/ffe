@@ -157,7 +157,7 @@ def info(ctx, all, recipe_name):
                 'Use "ffe info --set-recipes <DIRECTORY PATH>" to change the directory contains recipes.\n'
             )
             click.echo(
-                'Use "ffe install -i  https://github.com/ahui2016/ffe/raw/main/recipes/swap.py" to download an example recipe\n'
+                'Use "ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/swap.py" to download an example recipe\n'
             )
             ctx.exit()
         click.echo(f"All registered recipes: {', '.join(__recipes__.keys())}")
@@ -198,15 +198,21 @@ def install(ctx, download, install, force, url):
     提醒：请先下载 url 指向的文件，检查没有恶意代码后再安装，因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码（自动 import）。
     """
     if not download and not install:
-        click.echo(
-            'Error: Missing option "-d" or "-i", use "ffe install --help" to learn more.'
-        )
+        click.echo('Error: Missing option "-d" or "-i"')
+        click.echo('Try "ffe install --help" for help.')
         ctx.exit()
 
     file_path = Path(urlparse(url).path)
-    if not force and file_path.suffix != ".py":
+    suffix = file_path.suffix.lower()
+    if not force and file_path.suffix not in [".py", ".toml"]:
         click.echo(
-            'Warning: It seem not a python file, add the "-f" flag to force install it.'
+            'Warning: It seem not a python file, retry with "-f" to force install it.'
+        )
+        ctx.exit()
+    dst = Path(__recipes_folder__).joinpath(file_path.name)
+    if dst.exists() and not force:
+        click.echo(
+            f'Warning: {dst.stem} already exists, retry with "-f" to force install it.'
         )
         ctx.exit()
 
@@ -228,9 +234,29 @@ def install(ctx, download, install, force, url):
         ctx.exit()
 
     if install:
-        dst = Path(__recipes_folder__).joinpath(file_path.name)
-        click.echo(dst)
-        # with open()
+        if suffix == ".py":
+            with open(dst, "wb") as f:
+                f.write(resp.content)
+            click.echo("OK.")
+            ctx.exit()
+
+        if suffix == ".toml":
+            click.echo('Start to install a list of recipes.')
+            recipe_list = tomli.loads(resp.text).get("recipes", [])
+            if not recipe_list:
+                click.echo(f'{url} has no recipes')
+                ctx.exit()
+            for r_url in recipe_list:
+                filename = Path(urlparse(r_url).path).name
+                dst = Path(__recipes_folder__).joinpath(filename)
+                if dst.exists() and not force:
+                    click.echo(f'skip  : {r_url}')
+                else:
+                    resp = requests.get(r_url, proxies=proxies)
+                    resp.raise_for_status()
+                    click.echo(f'install: {r_url}')
+                    with open(dst, "wb") as f:
+                        f.write(resp.content)
 
 
 @cli.command()
@@ -354,7 +380,7 @@ def run(ctx, in_file, recipe_name, is_dry, names):
     if is_dry:
         click.echo("\nThe dry run has been completed.\n")
     else:
-        click.echo("All tasks have been completed.\n")
+        click.echo("\nAll tasks have been completed.\n")
 
 
 # 初始化

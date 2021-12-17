@@ -129,6 +129,7 @@ def register(recipe: Type[Recipe]):
 
 
 def init_recipes(folder: str) -> None:
+    """注册 folder 里的全部插件。"""
     recipes_files = Path(folder).glob("*.py")
     for file_path in recipes_files:
         module_name = file_path.stem
