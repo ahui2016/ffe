@@ -18,7 +18,9 @@ class Recipe(ABC):
     def name(self) -> str:
         """Get the name of this recipe.
 
-        注意，应返回一个便于命令行输入的名字，比如中间不要有空格。
+        注意，应返回一个便于命令行输入的名称，比如中间不要有空格。
+        名称稍长一点也没关系，因为 ffe 的主要使用场景是配合 toml 文件使用，
+        不需要太频繁输入插件名称。
         """
         pass
 
@@ -191,9 +193,9 @@ def names_limit(
     if min == max and size != min:
         msg = f"exactly {min} names"
     elif size < min:
-        msg = f"names.length < {min}"
+        msg = f"names.length > {min}"
     elif size > max:
-        msg = f"names.length > {max}"
+        msg = f"names.length <= {max}"
 
     if msg:
         msg = f"expected: {msg}, got: {names}"

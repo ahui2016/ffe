@@ -20,11 +20,11 @@ class MoveNewFiles(Recipe):
     只能用来移动一个文件夹内的第一层文件，不能移动文件夹，也不会递归处理子文件夹。
     """
 
-    @property  # 注意: 必须有 @property
+    @property  # 注意: 必须设为 @property
     def name(self) -> str:
         return "move-new-files"
 
-    @property  # 注意: 必须有 @property
+    @property  # 注意: 必须设为 @property
     def help(self) -> str:
         return """
 [[tasks]]
@@ -43,7 +43,7 @@ overwrite = false       # 是否覆盖同名文件
 # dependencies = ["humanfriendly"]
 """
 
-    @property  # 注意: 必须有 @property
+    @property  # 注意: 必须设为 @property
     def default_options(self) -> dict:
         return dict(n=1, suffix="", overwrite=False)
 
