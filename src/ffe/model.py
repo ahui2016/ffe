@@ -173,10 +173,12 @@ def check_plan(plan: Plan) -> ErrMsg:
     return ""
 
 
-def are_names_exist(names: list[str]) -> ErrMsg:
+def are_names_exist(names: list[str] | list[Path]) -> ErrMsg:
     """names 是文件/文件夹的路径，全部存在时返回空字符串。"""
     for name in names:
-        if not Path(name).exists():
+        if isinstance(name, str):
+            name = Path(name)
+        if not name.exists():
             return f"not found: {name}"
     return ""
 

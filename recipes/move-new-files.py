@@ -82,9 +82,9 @@ overwrite = false       # 是否覆盖同名文件
     def dry_run(self, really_move: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
-        print(f"Move files from [{self.src_dir}] to [{self.target_dir}]")
-
         src_files, files_size, free_space = self.get_new_files()
+        print(f"Move [{len(src_files)}] files from [{self.src_dir}] to [{self.target_dir}]")
+
         print(
             f"files size: {format_size(files_size)}, free space: {format_size(free_space)}"
         )

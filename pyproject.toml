@@ -15,7 +15,7 @@ dependencies = [
   "appdirs",
   "requests"
 ]
-requires-python = ">=3.8" # because using TypedDict
+requires-python = ">=3.10" # because using TypedDict(v3.8) and Pattern Match(v3.10) 
 dynamic = ["version", "description"]
 
 [project.urls]
