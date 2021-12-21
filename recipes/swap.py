@@ -1,3 +1,9 @@
+"""swap: 对调两个文件的文件名
+
+只能用于不需要移动文件的情况，比如同一个文件夹（或同一个硬盘分区）内的文件可以操作，
+而跨硬盘分区的文件则无法处理。
+"""
+
 from pathlib import Path
 from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
 
@@ -10,11 +16,6 @@ suffix_limit = 20
 
 # 关于具体如何实现一个 Recipe, 请参考项目源码中的 model.py
 class Swap(Recipe):
-    """对调两个文件名
-
-    只能用于不需要移动文件的情况，比如同一个文件夹（或同一个硬盘分区）内的文件可以操作，
-    而跨硬盘分区的文件则无法处理。
-    """
 
     @property  # 注意: 必须有 @property
     def name(self) -> str:

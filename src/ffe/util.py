@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import TypedDict, cast
 from appdirs import AppDirs
+from requests.models import Response
 import toml
 import tomli
 import requests
@@ -58,3 +59,17 @@ def request(url: str, proxies: dict | None) -> requests.Response:
     resp = requests.get(url, proxies=proxies)
     resp.raise_for_status()
     return resp
+
+
+def peek_lines(url: str, proxies: dict = None, resp: Response = None) -> None:
+    print(url)
+    if not resp:
+        resp = request(url, proxies)
+    n, max = 0, 5
+    for line in resp.iter_lines():
+        n += 1
+        if n >= max:
+            break
+        if line:
+            print(line.decode('utf-8'))
+    print()

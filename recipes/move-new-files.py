@@ -1,10 +1,7 @@
-from humanfriendly import format_size
-import shutil
-from pathlib import Path
-from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
+"""move-new-files: 移动 n 个指定后缀的新文件。
 
+只能用来移动一个文件夹内的第一层文件，不能移动文件夹，也不会递归处理子文件夹。
 
-"""
 本插件用来移动新文件，通过 st_ctime 来对文件排序。
     st_ctime:
         the time of most recent metadata change on Unix,
@@ -13,12 +10,13 @@ from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
 使用 shutil.move 来移动文件，因此会先尝试改名，改名失败再进行复制和删除操作。
 """
 
+from humanfriendly import format_size
+import shutil
+from pathlib import Path
+from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
+
 
 class MoveNewFiles(Recipe):
-    """移动 n 个指定后缀的新文件。
-
-    只能用来移动一个文件夹内的第一层文件，不能移动文件夹，也不会递归处理子文件夹。
-    """
 
     @property  # 注意: 必须设为 @property
     def name(self) -> str:

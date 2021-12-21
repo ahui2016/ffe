@@ -16,6 +16,7 @@ from ffe.util import (
     ensure_config_file,
     ensure_recipes_folder,
     get_proxies,
+    peek_lines,
     request,
 )
 from . import (
@@ -172,25 +173,32 @@ def info(ctx, all, recipe_name):
 
 @cli.command()
 @click.option(
+    "peek",
+    "-p",
+    "--peek",
+    is_flag=True,
+    help="Print the first few lines of a file."
+)
+@click.option(
     "download",
     "-d",
     "--download-only",
     is_flag=True,
-    help="Download the recipe and print its content, do not install it.",
+    help="Download a file and print its content, do not install it.",
 )
 @click.option(
     "install",
     "-i",
     "--install",
     is_flag=True,
-    help="Install the recipe. Warning: Please inspect before installing.",
+    help="Install the recipe. Warning: Please inspect before installing it.",
 )
 @click.option(
     "force", "-f", "--force", is_flag=True, help="Force install/update the recipe."
 )
 @click.argument("url", nargs=1)
 @click.pass_context
-def install(ctx, download, install, force, url):
+def install(ctx, peek, download, install, force, url):
     """Install recipes from an url.
 
     [URL] is a url point to a ".py" or ".toml" file.
@@ -199,20 +207,35 @@ def install(ctx, download, install, force, url):
     提醒：请先下载 url 指向的文件，检查没有恶意代码后再安装，因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码（自动 import）。
     """
 
-    if not download and not install:
+    if (not download) and (not peek) and (not install):
         click.echo('Error: Missing option "-d" or "-i"')
         click.echo('Try "ffe install --help" for help.')
         ctx.exit()
 
     proxies = get_proxies()
+    file_path = Path(urlparse(url).path)
+    suffix = file_path.suffix.lower()
+
+    if peek:
+        resp = request(url, proxies)
+        match suffix:
+            case ".toml":
+                recipe_list = tomli.loads(resp.text).get("recipes", [])
+                if not recipe_list:
+                    click.echo(f"{url} has no recipes")
+                    ctx.exit()
+                for r_url in recipe_list:
+                    peek_lines(r_url, proxies)
+            case _:
+                peek_lines(url, None, resp)
+        ctx.exit()
+
     if download:
         resp = request(url, proxies)
-        click.echo(resp.text)
+        print(resp.text)
         ctx.exit()
 
     # if install:
-    file_path = Path(urlparse(url).path)
-    suffix = file_path.suffix.lower()
     if not force and file_path.suffix not in [".py", ".toml"]:
         click.echo(
             'Warning: It seem not a python file, retry with "-f" to force install it.'

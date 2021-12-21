@@ -1,7 +1,13 @@
-# 文件名是什么没关系，但必须有一项名为 "recipes" 的列表，里面是源文件的下载地址。
-# 使用命令 `ffe install -i https://exmaple.com/recipes.toml` 可批量安装插件(
-# 其中网址请换成真实网址), 遇到同名插件会自动跳过。
+# 本文件必须有一项名为 "recipes" 的列表，里面是源文件的下载地址。
+#
+# 使用命令 `ffe install -p https://exmaple.com/recipes.toml` 可批量窥视插件
+# (窥视：每个文件只显示头几行)
+#
+# 使用命令 `ffe install -i https://exmaple.com/recipes.toml` 可批量安装插件
+# (其中网址请换成真实网址), 遇到同名插件会自动跳过。
+#
 # 提醒：请检查没有恶意代码后再安装，因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码(自动 import).
+
 recipes = [
    'https://gitee.com/ipelago/ffe/raw/main/recipes/swap.py',
    'https://gitee.com/ipelago/ffe/raw/main/recipes/move-new-files.py',
