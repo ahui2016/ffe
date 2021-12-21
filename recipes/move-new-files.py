@@ -10,6 +10,8 @@
 使用 shutil.move 来移动文件，因此会先尝试改名，改名失败再进行复制和删除操作。
 """
 
+# 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
+
 from humanfriendly import format_size
 import shutil
 from pathlib import Path
@@ -17,7 +19,6 @@ from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
 
 
 class MoveNewFiles(Recipe):
-
     @property  # 注意: 必须设为 @property
     def name(self) -> str:
         return "move-new-files"
@@ -81,7 +82,9 @@ overwrite = false       # 是否覆盖同名文件
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         src_files, files_size, free_space = self.get_new_files()
-        print(f"Move [{len(src_files)}] files from [{self.src_dir}] to [{self.target_dir}]")
+        print(
+            f"Move [{len(src_files)}] files from [{self.src_dir}] to [{self.target_dir}]"
+        )
 
         print(
             f"files size: {format_size(files_size)}, free space: {format_size(free_space)}"

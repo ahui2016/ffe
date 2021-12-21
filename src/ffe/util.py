@@ -67,9 +67,9 @@ def peek_lines(url: str, proxies: dict = None, resp: Response = None) -> None:
         resp = request(url, proxies)
     n, max = 0, 5
     for line in resp.iter_lines():
-        n += 1
         if n >= max:
             break
+        n += 1
         if line:
             print(line.decode('utf-8'))
     print()

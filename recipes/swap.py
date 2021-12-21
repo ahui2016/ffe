@@ -4,6 +4,8 @@
 而跨硬盘分区的文件则无法处理。
 """
 
+# 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
+
 from pathlib import Path
 from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
 
@@ -16,7 +18,6 @@ suffix_limit = 20
 
 # 关于具体如何实现一个 Recipe, 请参考项目源码中的 model.py
 class Swap(Recipe):
-
     @property  # 注意: 必须有 @property
     def name(self) -> str:
         return "swap"

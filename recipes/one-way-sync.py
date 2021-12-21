@@ -1,13 +1,15 @@
+"""one-way-sync: 单向同步
+
+可选择按日期 及/或 按内容对比文件。
+新增(add), 更新(update), 删除(delete) 三种情况均可单独控制。
+"""
+
+# 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
+
 from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
 
 
 class OneWaySync(Recipe):
-    """单向同步
-
-    可选择按日期对比 及/或 按内容对比。
-    并且新增(add), 更新(update), 删除(delete) 三种情况可单独控制。
-    """
-
     @property  # 必须设为 @property
     def name(self) -> str:
         return "one-way-sync"
