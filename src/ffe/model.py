@@ -183,6 +183,11 @@ def are_names_exist(names: list[str] | list[Path]) -> ErrMsg:
     return ""
 
 
+def filter_files(names: list[Path]) -> list[Path]:
+    """只要文件，不要文件夹"""
+    return [x for x in names if x.is_file()]
+
+
 def names_limit(
     names: list[str], min: int, max: int = __input_files_max__
 ) -> tuple[list[str], ErrMsg]:

@@ -9,7 +9,7 @@
 import glob
 from pathlib import Path
 from enum import Enum, auto
-from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
+from ffe.model import Recipe, ErrMsg, are_names_exist, filter_files, names_limit
 
 
 class EditMethod(Enum):
@@ -28,7 +28,23 @@ class RenamePart(Recipe):
 
     @property  # 必须设为 @property
     def help(self) -> str:
-        return ""
+        return """
+[[tasks]]
+recipe = "rename-part"  # 批量修改或删除文件名中的一部分
+names = [ "." ]        # 一个文件夹 或 多个文件 或 使用通配符
+
+[tasks.options]
+old = ""             # 需要被删除或修改的内容
+new = ""             # 新内容
+method = "REPLACE"   # 有三种方法可选: replace / head / tail
+auto = true          # 根据 old 自动选择文件，需要在 names 里指定一个文件夹
+use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 '*.jpg'
+
+# 本插件的主要用法有两种：
+# 1. 自动根据 old 选择文件，并且把 old 更改为 new, 如果 new 是空字符串则相当于删除 old。
+# 2. method 设为 head 或 tail 时分别表示在文件名的开头或末尾添加 new 的内容。
+# 由于本插件比较复杂，不熟悉时建议多用 'ffe run -dry' 模式预估运行结果，确认无误再真正执行。
+"""
 
     @property  # 必须设为 @property
     def default_options(self) -> dict:
@@ -70,7 +86,7 @@ class RenamePart(Recipe):
 
         # auto 模式只适用于 EditMethod.REPLACE
         if self.method is not EditMethod.REPLACE:
-            print('set auto to False because the method is not REPLACE')
+            print("set auto to False because the method is not REPLACE")
             self.auto = False
 
         # 优先采用 auto 模式，其次采用 use_glob 模式，当 auto 与 use_glob 都被设为 False 时
@@ -90,7 +106,7 @@ class RenamePart(Recipe):
             names, err = names_limit(names, 1, 1)
             if err:
                 return f"{err}\n当 use_glob=True 时要求 names 数量刚好等于 1"
-            if names[0].find('**') >= 0:
+            if names[0].find("**") >= 0:
                 return "do not support the “**” pattern"
             self.names = [Path(x) for x in glob.glob(names[0])]
         else:
@@ -100,9 +116,10 @@ class RenamePart(Recipe):
                 return f"{err}\n当 auto=False 且 use_glob=False 时要求 names 数量大于等于 1"
             self.names = [Path(x) for x in names]
 
+        self.names = filter_files(self.names)
         return are_names_exist(self.names)
 
-    def dry_run(self, really_move: bool = False) -> ErrMsg:
+    def dry_run(self, really_run: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         print(f"method: {self.method.name}\n")
@@ -113,38 +130,38 @@ class RenamePart(Recipe):
         print("\nAfter rename:")
         match self.method:
             case EditMethod.REPLACE:
-                self.names_replace()
+                self.names_replace(really_run)
             case EditMethod.HEAD:
-                self.names_add_head()
+                self.names_add_head(really_run)
             case EditMethod.TAIL:
-                self.names_add_tail()
+                self.names_add_tail(really_run)
 
         return ""
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
-        return ""
+        return self.dry_run(really_run=True)
 
-    def names_replace(self) -> None:
+    def names_replace(self, really_run: bool) -> None:
         for old_path in self.names:
             old_path = smart_resolve(old_path)
-            new_name = old_path.name.replace(self.old, "")
+            new_name = old_path.name.replace(self.old, self.new)
             new_path = old_path.with_name(new_name)
-            check_print(old_path.__str__(), new_path.__str__())
+            check_print_run(old_path, new_path, really_run)
 
-    def names_add_head(self) -> None:
+    def names_add_head(self, really_run: bool) -> None:
         for old_path in self.names:
             old_path = smart_resolve(old_path)
             new_name = self.new + old_path.name
             new_path = old_path.with_name(new_name)
-            check_print(old_path.__str__(), new_path.__str__())
+            check_print_run(old_path, new_path, really_run)
 
-    def names_add_tail(self) -> None:
+    def names_add_tail(self, really_run: bool) -> None:
         for old_path in self.names:
             old_path = smart_resolve(old_path)
             new_stem = old_path.stem + self.new
             new_path = old_path.with_stem(new_stem)
-            check_print(old_path.__str__(), new_path.__str__())
+            check_print_run(old_path, new_path, really_run)
 
 
 ##
@@ -160,14 +177,19 @@ def smart_resolve(p: Path) -> Path:
     return p
 
 
-def check_print(before: str, after: str) -> None:
-    if not after:
-        print(f"Cannot rename '{before}' to a blank filename.")
+def check_print_run(before: Path, after: Path, really_run: bool) -> None:
+    before_str, after_str = before.__str__(), after.__str__()
+
+    if not after_str:
+        print(f"Cannot rename '{before_str}' to a blank filename.")
         return
 
-    if Path(after).exists() or after in new_filenames:
-        print(f"Cannot rename '{before}' to '{after}'(exists)")
+    if after.exists() or after_str in new_filenames:
+        print(f"Cannot rename '{before_str}' to '{after_str}'(exists)")
         return
 
-    new_filenames.add(after)
-    print(after)
+    if really_run:
+        before.rename(after)
+
+    new_filenames.add(after_str)
+    print(after_str)

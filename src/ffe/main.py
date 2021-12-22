@@ -173,11 +173,7 @@ def info(ctx, all, recipe_name):
 
 @cli.command()
 @click.option(
-    "peek",
-    "-p",
-    "--peek",
-    is_flag=True,
-    help="Print the first few lines of a file."
+    "peek", "-p", "--peek", is_flag=True, help="Print the first few lines of a file."
 )
 @click.option(
     "download",
@@ -378,16 +374,19 @@ def run(ctx, in_file, recipe_name, is_dry, names):
 
     # 提醒：在执行以下代码之前，应先执行 check_plan 函数。
     if is_dry:
-        click.echo("\n** It's a dry run, not a real run. **\n")
+        click.echo("\n** It's a dry run, not a real run. **")
 
     for task in plan["tasks"]:
         r: Recipe = __recipes__[task["recipe"]]()
+        click.echo(f"\nrecipe: {r.name}")
+
         err = r.validate(task["names"], task["options"])
         if err:
             click.echo(f"Error: {err}")
             click.echo('Use "ffe run --help" to show usages of this command.')
             click.echo('Use "ffe info -r <recipe>" to show details of the recipe.')
             ctx.exit()
+
         if is_dry:
             check(ctx, r.dry_run())
         else:

@@ -78,7 +78,7 @@ overwrite = false       # 是否覆盖同名文件
         self.is_validated = True
         return ""
 
-    def dry_run(self, really_move: bool = False) -> ErrMsg:
+    def dry_run(self, really_run: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         src_files, files_size, free_space = self.get_new_files()
@@ -92,13 +92,12 @@ overwrite = false       # 是否覆盖同名文件
         if free_space <= files_size:
             return f"Not enough space in {self.target_dir}"
 
-        print_and_move(Path(self.target_dir), src_files, self.overwrite, really_move)
+        print_and_move(Path(self.target_dir), src_files, self.overwrite, really_run)
         return ""
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
-        self.dry_run(really_move=True)
-        return ""
+        return self.dry_run(really_run=True)
 
     def get_new_files(self) -> tuple[list[Path], int, int]:
         src_files = Path(self.src_dir).glob("*")

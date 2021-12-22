@@ -71,5 +71,5 @@ def peek_lines(url: str, proxies: dict = None, resp: Response = None) -> None:
             break
         n += 1
         if line:
-            print(line.decode('utf-8'))
+            print(line.decode("utf-8"))
     print()
