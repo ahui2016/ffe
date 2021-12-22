@@ -55,6 +55,12 @@ overwrite = false       # 是否覆盖同名文件
         - self.suffix
         - self.overwrite
         """
+
+        # 优先采用 options 里的 names, 方便多个任务组合。
+        options_names = options.get("names", [])
+        if options_names:
+            names = options_names
+
         names, err = names_limit(names, 2, 2)
         if err:
             return err
@@ -112,9 +118,6 @@ overwrite = false       # 是否覆盖同名文件
         return src_files[: self.n], files_size, free_space
 
 
-##
-# 注意，这句代码重要，就是靠这句把 MoveNewFiles 传递给插件系统。
-##
 __recipe__ = MoveNewFiles
 
 

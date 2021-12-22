@@ -195,16 +195,16 @@ def names_limit(
 
     temp = map(lambda name: name.strip(), names)
     names = list(filter(lambda name: name != "", temp))
-    msg = ""
+    expected = ""
     size = len(names)
     if min == max and size != min:
-        msg = f"exactly {min} names"
+        expected = f"exactly {min} names"
     elif size < min:
-        msg = f"names.length > {min}"
+        expected = f"names.length > {min}"
     elif size > max:
-        msg = f"names.length <= {max}"
+        expected = f"names.length <= {max}"
 
-    if msg:
-        msg = f"expected: {msg}, got: {names}"
+    if expected:
+        expected = f"expected: {expected}, got: {names}"
         names = []
-    return names, msg
+    return names, expected

@@ -297,9 +297,15 @@ def dump(ctx, in_file, recipe_name, names):
         click.echo(ctx.get_help())
         ctx.exit()
 
+    names = cast(list[click.Path], names)
+    names = [x.__str__() for x in names]
     plan = new_plan()
+
     if in_file:
         plan = new_plan(tomli.load(in_file))
+        if names:
+            # 用户通过命令输入的 names 拥有最高优先级
+            plan["global_names"] = names
     else:
         r, err = get_recipe(recipe_name)
         check(ctx, err)
@@ -307,7 +313,7 @@ def dump(ctx, in_file, recipe_name, names):
             plan["tasks"] = [
                 Task(
                     recipe=r.name,
-                    names=list(map(lambda name: name.__str__(), names)),
+                    names=names,
                     options=r.default_options,
                 )
             ]
@@ -358,6 +364,9 @@ def run(ctx, in_file, recipe_name, is_dry, names):
     plan = new_plan()
     if in_file:
         plan = new_plan(tomli.load(in_file))
+        if names:
+            # 用户通过命令输入的 names 拥有最高优先级
+            plan["global_names"] = names
     else:
         rcp, err = get_recipe(recipe_name)
         check(ctx, err)

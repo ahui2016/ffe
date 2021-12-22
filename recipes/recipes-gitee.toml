@@ -10,5 +10,6 @@
 
 recipes = [
    'https://gitee.com/ipelago/ffe/raw/main/recipes/swap.py',
+   'https://gitee.com/ipelago/ffe/raw/main/recipes/rename-part.py',
    'https://gitee.com/ipelago/ffe/raw/main/recipes/move-new-files.py',
 ]

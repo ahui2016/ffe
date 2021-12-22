@@ -89,6 +89,11 @@ use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 
             print("set auto to False because the method is not REPLACE")
             self.auto = False
 
+        # 优先采用 options 里的 names, 方便多个任务组合。
+        options_names = options.get("names", [])
+        if options_names:
+            names = options_names
+
         # 优先采用 auto 模式，其次采用 use_glob 模式，当 auto 与 use_glob 都被设为 False 时
         # 才进入逐一指定具体文件的模式。
         if self.auto:
@@ -164,9 +169,6 @@ use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 
             check_print_run(old_path, new_path, really_run)
 
 
-##
-# 注意，这句代码重要，就是靠这句把 OneWaySync 传递给插件系统。
-##
 __recipe__ = RenamePart
 
 

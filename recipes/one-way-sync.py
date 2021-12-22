@@ -16,7 +16,7 @@ class OneWaySync(Recipe):
 
     @property  # 必须设为 @property
     def help(self) -> str:
-        return ""
+        return "coming soon... (本插件正在施工中)"
 
     @property  # 必须设为 @property
     def default_options(self) -> dict:
@@ -51,14 +51,11 @@ class OneWaySync(Recipe):
 
     def dry_run(self, really_move: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
-        return ""
+        return "coming soon... (本插件正在施工中)"
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
-        return ""
+        return "coming soon... (本插件正在施工中)"
 
 
-##
-# 注意，这句代码重要，就是靠这句把 OneWaySync 传递给插件系统。
-##
 __recipe__ = OneWaySync

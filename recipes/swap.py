@@ -50,15 +50,20 @@ verbose = true  # 显示或不显示程序执行的详细过程
         - self.verbose
         """
 
+        # 优先采用 options 里的 names, 方便多个任务组合。
+        options_names = options.get("names", [])
+        if options_names:
+            names = options_names
+
         names, err = names_limit(names, 2, 2)
         if err:
             return err
         err = are_names_exist(names)
         if err:
             return err
-
         self.name1 = Path(names[0])
         self.name2 = Path(names[1])
+
         if self.name1.is_dir() or self.name2.is_dir():
             return f"{names[0]} and {names[1]} should be both files."
 
@@ -101,9 +106,6 @@ verbose = true  # 显示或不显示程序执行的详细过程
         return ""
 
 
-##
-# 注意，这句代码重要，就是靠这句把 Swap 传递给插件系统。
-##
 __recipe__ = Swap
 
 
