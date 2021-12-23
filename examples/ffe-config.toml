@@ -4,3 +4,6 @@ use_proxy = true
 
 [anon]
 key = '12a3bcd123456789'
+
+[mimi]
+password = 'abc'

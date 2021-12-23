@@ -84,9 +84,9 @@ key = ""          # AnonFiles 账号的 key
         url = "https://api.anonfiles.com/upload"
         if self.key:
             url += f"?token={self.key}"
-        with open(self.filename, 'rb') as f:
+        with open(self.filename, "rb") as f:
             print(f"uploading {self.filename} ......")
-            resp = requests.post(url, files={'file': f}, proxies=get_proxies())
+            resp = requests.post(url, files={"file": f}, proxies=get_proxies())
 
         resp.raise_for_status()
         result = resp.json()

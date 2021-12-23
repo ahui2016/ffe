@@ -285,7 +285,7 @@ def install(ctx, peek, download, install, force, url):
     "--recipe",
     help='Specify a recipe. Use "ffe info -a" to show all recipes.',
 )
-@click.argument("names", nargs=-1, type=click.Path(exists=True))
+@click.argument("names", nargs=-1, type=click.Path())
 @click.pass_context
 def dump(ctx, in_file, recipe_name, names):
     """Do not run tasks, but print the plan instead.
@@ -349,7 +349,7 @@ def dump(ctx, in_file, recipe_name, names):
     is_flag=True,
     help="Predict the results of a real run, based on a test run without modifying files.",
 )
-@click.argument("names", nargs=-1, type=click.Path(exists=True))
+@click.argument("names", nargs=-1, type=click.Path())
 @click.pass_context
 def run(ctx, in_file, recipe_name, is_dry, names):
     """Run tasks by specifying a file or a recipe.

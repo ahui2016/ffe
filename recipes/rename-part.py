@@ -13,9 +13,9 @@ from ffe.model import Recipe, ErrMsg, are_names_exist, filter_files, names_limit
 
 
 class EditMethod(Enum):
-    REPLACE = auto()
-    HEAD = auto()
-    TAIL = auto()
+    Replace = auto()
+    Head = auto()
+    Tail = auto()
 
 
 new_filenames = set()
@@ -51,7 +51,7 @@ use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 
         return dict(
             old="",
             new="",
-            method=EditMethod.REPLACE.name,
+            method=EditMethod.Replace.name,
             auto=True,
             use_glob=False,
         )
@@ -85,7 +85,7 @@ use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 
         self.use_glob = options.get("use_glob", False)
 
         # auto 模式只适用于 EditMethod.REPLACE
-        if self.method is not EditMethod.REPLACE:
+        if self.method is not EditMethod.Replace:
             print("set auto to False because the method is not REPLACE")
             self.auto = False
 
@@ -134,11 +134,11 @@ use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 
 
         print("\nAfter rename:")
         match self.method:
-            case EditMethod.REPLACE:
+            case EditMethod.Replace:
                 self.names_replace(really_run)
-            case EditMethod.HEAD:
+            case EditMethod.Head:
                 self.names_add_head(really_run)
-            case EditMethod.TAIL:
+            case EditMethod.Tail:
                 self.names_add_tail(really_run)
 
         return ""
