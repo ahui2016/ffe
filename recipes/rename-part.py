@@ -133,13 +133,12 @@ use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 
             print(smart_resolve(p).__str__())
 
         print("\nAfter rename:")
-        match self.method:
-            case EditMethod.REPLACE:
-                self.names_replace(really_run)
-            case EditMethod.HEAD:
-                self.names_add_head(really_run)
-            case EditMethod.TAIL:
-                self.names_add_tail(really_run)
+        if self.method == EditMethod.REPLACE:
+            self.names_replace(really_run)
+        elif self.method == EditMethod.HEAD:
+            self.names_add_head(really_run)
+        elif self.method == EditMethod.TAIL:
+            self.names_add_tail(really_run)
 
         return ""
 

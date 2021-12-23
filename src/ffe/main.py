@@ -214,16 +214,15 @@ def install(ctx, peek, download, install, force, url):
 
     if peek:
         resp = request(url, proxies)
-        match suffix:
-            case ".toml":
-                recipe_list = tomli.loads(resp.text).get("recipes", [])
-                if not recipe_list:
-                    click.echo(f"{url} has no recipes")
-                    ctx.exit()
-                for r_url in recipe_list:
-                    peek_lines(r_url, proxies)
-            case _:
-                peek_lines(url, None, resp)
+        if suffix == ".toml":
+            recipe_list = tomli.loads(resp.text).get("recipes", [])
+            if not recipe_list:
+                click.echo(f"{url} has no recipes")
+                ctx.exit()
+            for r_url in recipe_list:
+                peek_lines(r_url, proxies)
+        else:
+            peek_lines(url, None, resp)
         ctx.exit()
 
     if download:

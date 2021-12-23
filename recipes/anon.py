@@ -67,8 +67,8 @@ class Anon(Recipe):
         url = "https://api.anonfiles.com/upload"
         if self.key:
             url += f"?token={self.key}"
-        with open(self.filename, 'rb') as f:
-            file = {'file': f}
+        with open(self.filename, "rb") as f:
+            file = {"file": f}
             print(f"uploading {self.filename} ......")
             resp = requests.post(url, file, proxies=get_proxies())
 
