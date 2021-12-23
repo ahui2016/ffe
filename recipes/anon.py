@@ -1,4 +1,5 @@
 """anon: 上传文件到 AnonFiles (匿名文件分享)
+dependencies = ["pyperclip"]
 
 上传文件到 anonfiles.com 用于分享或暂存。
 
@@ -8,10 +9,11 @@ AnonFiles 的优点：
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
 
+import tomli
 import requests
 import pyperclip
 from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
-from ffe.util import get_proxies
+from ffe.util import app_config_file, get_proxies
 
 
 class Anon(Recipe):
@@ -22,8 +24,21 @@ class Anon(Recipe):
     @property  # 必须设为 @property
     def help(self) -> str:
         return """
+[[tasks]]
+recipe = "anon"  # 上传文件到 AnonFiles
+names = [        # 每次只能上传一个文件
+    'file.jpg',
+]
+
+[tasks.options]
+auto_copy = true  # 是否自动复制结果到剪贴板
+key = ""          # AnonFiles 账号的 key
+
 # 每次只能上传 1 个文件，如果需要一次性上传多个文件，建议先压缩打包。
-# dependencies = ["pyperclip"]
+# 不设置 key 也可使用，如果注册了 AnonFiles 并且设置了 key,
+# 则可以登入 AnonFiles 的账号查看已上传文件的列表。
+# 也可在 ffe-config.toml 里设置 key (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
+# 你的 ffe-config.toml 文件位置可以用命令 `ffe info -cfg` 查看。
 """
 
     @property  # 必须设为 @property
@@ -44,6 +59,8 @@ class Anon(Recipe):
         self.is_validated = True
 
         self.key = options.get("key", "")
+        if not self.key:
+            self.key = get_config_key()
         self.filename = options.get("filename", "")  # 优先采用 options.filename, 方便多个任务组合。
         if not self.filename:
             names, err = names_limit(names, 1, 1)
@@ -68,20 +85,29 @@ class Anon(Recipe):
         if self.key:
             url += f"?token={self.key}"
         with open(self.filename, 'rb') as f:
-            file = {'file': f}
             print(f"uploading {self.filename} ......")
-            resp = requests.post(url, file, proxies=get_proxies())
+            resp = requests.post(url, files={'file': f}, proxies=get_proxies())
 
         resp.raise_for_status()
         result = resp.json()
         if not result["status"]:
             return result["error"]["message"]
 
-        file_url = result["data"]["file"]["full"]
+        file_url = result["data"]["file"]["url"]["full"]
         print(file_url)
+        if self.auto_copy:
+            print("Auto copy to clipboard: True")
         if self.auto_copy:
             pyperclip.copy(file_url)
         return ""
 
 
 __recipe__ = Anon
+
+
+def get_config_key() -> str:
+    with open(app_config_file, "rb") as f:
+        config = tomli.load(f)
+    if config.get("anon", ""):
+        return config["anon"].get("key", "")
+    return ""

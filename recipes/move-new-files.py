@@ -1,4 +1,5 @@
 """move-new-files: 移动 n 个指定后缀的新文件。
+dependencies = ["humanfriendly"]
 
 只能用来移动一个文件夹内的第一层文件，不能移动文件夹，也不会递归处理子文件夹。
 
@@ -39,7 +40,6 @@ suffix = ".jpg"         # 指定文件名的末尾，空字符串表示不限
 overwrite = false       # 是否覆盖同名文件
 
 # 注意：本插件在设计上并未对移动大量文件的场景进行优化，建议只用来移动少量文件。
-# dependencies = ["humanfriendly"]
 """
 
     @property  # 注意: 必须设为 @property

@@ -95,7 +95,7 @@ def set_recipes_dir(ctx, param, value):
     ctx.exit()
 
 
-def set_http_proxy(ctx, param, value):
+def set_proxy(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
     value = cast(str, value).lower()
@@ -142,9 +142,9 @@ def set_http_proxy(ctx, param, value):
     expose_value=False,
 )
 @click.option(
-    "--set-http-proxy",
+    "--set-proxy",
     help='Set the http_proxy for requests. You can set it to "ON" or "OFF" too.',
-    callback=set_http_proxy,
+    callback=set_proxy,
     expose_value=False,
 )
 @click.pass_context

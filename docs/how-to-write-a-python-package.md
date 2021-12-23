@@ -48,7 +48,7 @@ Python 程序的发布中心是 pypi.org, 为了避免用户名或程序名与�
   - setup.cfg 里的 entry_points, 相当于 pyproject.toml 里的 project.scripts
   - 要注意目录结构，在上面的 click 网站链接里有说明，注意看就行。
 
-采用上述方法后，可在项目根目录用命令 `pip install --editable .` 进行本地安装，只需要本地安装一次，修改代码无需再次安装。
+采用上述方法后，可在项目根目录用命令 `pip install --editable .` 或 `flit install` 进行本地安装，只需要本地安装一次，修改代码无需再次安装。
 
 ## 9. 格式化, 语法检查
 

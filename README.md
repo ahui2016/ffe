@@ -22,3 +22,5 @@ Warning: Please download and inspect recipes before installing them.
 另外提供 recipes-gitee.toml
 
 用户通过命令输入的 names 拥有最高优先级，但要注意一个 toml 文件包含多个任务，那么每个任务的 names 都会被命令行输入的 names 覆盖。
+
+每个插件的简介里写明 dependencies, 另外专门做一个全部插件的 requirements.txt

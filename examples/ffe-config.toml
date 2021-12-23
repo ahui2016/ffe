@@ -1,0 +1,6 @@
+recipes_folder = "D:\\ComputerScience\\Python\\myprojects\\ffe\\recipes"
+http_proxy = "http://127.0.0.1:1081"
+use_proxy = true
+
+[anon]
+key = '12a3bcd123456789'
