@@ -12,7 +12,7 @@ AnonFiles 的优点：
 import tomli
 import requests
 import pyperclip
-from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
+from ffe.model import Recipe, ErrMsg, are_names_exist, get_bool, names_limit
 from ffe.util import app_config_file, get_proxies
 
 
@@ -33,10 +33,10 @@ names = [        # 每次只能上传一个文件
 [tasks.options]
 auto_copy = true  # 是否自动复制结果到剪贴板
 key = ""          # AnonFiles 账号的 key
+filename = ""     # 只有当多个任务组合时才使用此项代替命令行输入
 
 # 每次只能上传 1 个文件，如果需要一次性上传多个文件，建议先压缩打包。
-# 不设置 key 也可使用，如果注册了 AnonFiles 并且设置了 key,
-# 则可以登入 AnonFiles 的账号查看已上传文件的列表。
+# 不设置 key 也可使用，如果注册了 AnonFiles 并且设置了 key, 可登入 AnonFiles 的账号查看已上传文件的列表。
 # 也可在 ffe-config.toml 里设置 key (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
 # 你的 ffe-config.toml 文件位置可以用命令 `ffe info -cfg` 查看。
 """
@@ -58,20 +58,25 @@ key = ""          # AnonFiles 账号的 key
         # 要在 dry_run, exec 中确认 is_validated
         self.is_validated = True
 
+        self.auto_copy, err = get_bool(options, "auto_copy")
+        if err:
+            return err
+
         self.key = options.get("key", "")
         if not self.key:
             self.key = get_config_key()
-        self.filename = options.get("filename", "")  # 优先采用 options.filename, 方便多个任务组合。
-        if not self.filename:
-            names, err = names_limit(names, 1, 1)
-            if err:
-                return err
-            self.filename = names[0]
-        err = are_names_exist(names)
+
+        # 优先采用 options.filename, 方便多个任务组合。
+        filename = options.get("filename", "")
+        if filename:
+            names = [filename]
+
+        names, err = names_limit(names, 1, 1)
         if err:
             return err
-        self.auto_copy = options.get("auto_copy", True)
-        return ""
+        self.filename = names[0]
+
+        return are_names_exist(names)
 
     def dry_run(self) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
@@ -97,7 +102,6 @@ key = ""          # AnonFiles 账号的 key
         print(file_url)
         if self.auto_copy:
             print("Auto copy to clipboard: True")
-        if self.auto_copy:
             pyperclip.copy(file_url)
         return ""
 

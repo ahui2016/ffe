@@ -9,7 +9,7 @@
 import glob
 from pathlib import Path
 from enum import Enum, auto
-from ffe.model import Recipe, ErrMsg, are_names_exist, filter_files, names_limit
+from ffe.model import Recipe, ErrMsg, are_names_exist, filter_files, get_bool, names_limit
 
 
 class EditMethod(Enum):
@@ -36,9 +36,10 @@ names = [ "." ]        # 一个文件夹 或 多个文件 或 使用通配符
 [tasks.options]
 old = ""             # 需要被删除或修改的内容
 new = ""             # 新内容
-method = "REPLACE"   # 有三种方法可选: replace / head / tail
+method = "replace"   # 有三种方法可选: replace / head / tail
 auto = true          # 根据 old 自动选择文件，需要在 names 里指定一个文件夹
 use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 '*.jpg'
+names = []           # 只有当多个任务组合时才使用此项代替命令行输入
 
 # 本插件的主要用法有两种：
 # 1. 自动根据 old 选择文件，并且把 old 更改为 new, 如果 new 是空字符串则相当于删除 old。
@@ -69,20 +70,22 @@ use_glob = false     # 此项设为 true 时, names 应该使用通配符，如 
         # 要在 dry_run, exec 中确认 is_validated
         self.is_validated = True
 
-        wrong_method = options.get("method", "replace")
-        method = wrong_method.upper()
+        wrong_key = options.get("method", "replace")
+        method = wrong_key.capitalize()
         try:
             self.method = EditMethod[method]
         except KeyError:
             return (
-                f"KeyError: '{wrong_method}'\n"
-                "Please change the method to 'replace', 'head' or 'tail'."
+                f"KeyError: '{wrong_key}'\n"
+                "Please set the method to 'replace', 'head' or 'tail'."
             )
 
         self.old = options.get("old", "")
         self.new = options.get("new", "")
-        self.auto = options.get("auto", True)
-        self.use_glob = options.get("use_glob", False)
+        self.auto, e1 = get_bool(options, "auto")
+        self.use_glob, e2 = get_bool(options, "use_glob")
+        if e1 or e2:
+            return f"{e1} {e2}"
 
         # auto 模式只适用于 EditMethod.REPLACE
         if self.method is not EditMethod.Replace:

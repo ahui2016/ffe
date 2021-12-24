@@ -7,7 +7,7 @@
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
 
 from pathlib import Path
-from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
+from ffe.model import Recipe, ErrMsg, are_names_exist, get_bool, must_files, names_limit
 
 suffix = "1"
 """临时文件名的后缀"""
@@ -34,6 +34,7 @@ names = [        # 文件名数量必须是正好两个
 
 [tasks.options]
 verbose = true  # 显示或不显示程序执行的详细过程
+names = []      # 只有当多个任务组合时才使用此项代替命令行输入
 
 # swap 只能用于不需要移动文件的情况，比如同一个文件夹 (或同一个硬盘分区)
 # 内的文件可以操作，而跨硬盘分区的文件则无法处理。
@@ -49,60 +50,58 @@ verbose = true  # 显示或不显示程序执行的详细过程
         - self.names
         - self.verbose
         """
+        # 要在 dry_run, exec 中确认 is_validated
+        self.is_validated = True
+
+        # 检查选项，同时初始化选项，以便后续在 dry_run 和 exec 中使用。
+        self.verbose, err = get_bool(options, "verbose")
+        if err:
+            return err
 
         # 优先采用 options 里的 names, 方便多个任务组合。
         options_names = options.get("names", [])
         if options_names:
             names = options_names
 
-        names, err = names_limit(names, 2, 2)
+        self.names, err = names_limit(names, 2, 2)
         if err:
             return err
-        err = are_names_exist(names)
+        err = are_names_exist(self.names)
         if err:
             return err
-        self.name1 = Path(names[0])
-        self.name2 = Path(names[1])
-
-        if self.name1.is_dir() or self.name2.is_dir():
-            return f"{names[0]} and {names[1]} should be both files."
-
-        # 检查选项，同时初始化选项，以便后续在 dry_run 和 exec 中使用。
-        self.verbose = options.get("verbose", True)
-
-        # 要在 dry_run, exec 中确认 is_validated
-        self.is_validated = True
-        return ""
+        return must_files(self.names)
 
     def dry_run(self) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
-        print(f"Start to swap {self.name1} and {self.name2}")
-        temp, err = temp_name(self.name1)
+        name1, name2 = Path(self.names[0]), Path(self.names[1])
+        print(f"Start to swap {name1} and {name2}")
+        temp, err = temp_name(name1)
         if err:
             return err
         print(f"-- found a safe temp name: {temp}")
-        print(f"-- rename {self.name1} to {temp}")
-        print(f"-- rename {self.name2} to {self.name1}")
-        print(f"-- rename {temp} to {self.name2}")
-        print(f"swap files OK: {self.name1} and {self.name2}\n")
+        print(f"-- rename {name1} to {temp}")
+        print(f"-- rename {name2} to {name1}")
+        print(f"-- rename {temp} to {name2}")
+        print(f"swap files OK: {name1} and {name2}")
         return ""
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
 
-        temp, err = temp_name(self.name1)
+        name1, name2 = Path(self.names[0]), Path(self.names[1])
+        temp, err = temp_name(name1)
         if err:
             return err
-        self.name1.rename(temp)
-        self.name2.rename(self.name1)
-        temp.rename(self.name2)
+        name1.rename(temp)
+        name2.rename(name1)
+        temp.rename(name2)
 
         # 这个插件本来不需要 verbose, 只是为了当作使用 options 的示例，因此简单处理。
         if self.verbose:
             self.dry_run()
         else:
-            print(f"swap files OK: {self.name1} and {self.name2}\n")
+            print(f"swap files OK: {name1} and {name2}\n")
         return ""
 
 

@@ -1,7 +1,7 @@
 import sys
 import importlib.util
 from pathlib import Path
-from typing import Any, Dict, Type, TypedDict, cast
+from typing import Any, Dict, Tuple, Type, TypedDict, cast
 from abc import ABC, abstractmethod
 
 ErrMsg = str
@@ -183,6 +183,26 @@ def are_names_exist(names: list[str] | list[Path]) -> ErrMsg:
     return ""
 
 
+def must_folders(names: list[str] | list[Path]) -> ErrMsg:
+    """必须全是文件夹"""
+    for name in names:
+        if isinstance(name, str):
+            name = Path(name)
+        if not name.is_dir():
+            return f"'{name}' should be a directory"
+    return ""
+
+
+def must_files(names: list[str] | list[Path]) -> ErrMsg:
+    """必须全是文件"""
+    for name in names:
+        if isinstance(name, str):
+            name = Path(name)
+        if not name.is_file():
+            return f"'{name}' should be a file"
+    return ""
+
+
 def filter_files(names: list[Path]) -> list[Path]:
     """只要文件，不要文件夹"""
     return [x for x in names if x.is_file()]
@@ -208,3 +228,10 @@ def names_limit(
         expected = f"expected: {expected}, got: {names}"
         names = []
     return names, expected
+
+
+def get_bool(options: dict, key: str) -> Tuple[bool, ErrMsg]:
+    v = options.get(key, False)
+    if not isinstance(v, bool):
+        return False, f"Please set {key} to 'true' or 'false'"
+    return v, ""

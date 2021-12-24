@@ -16,7 +16,7 @@ dependencies = ["humanfriendly"]
 from humanfriendly import format_size
 import shutil
 from pathlib import Path
-from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
+from ffe.model import Recipe, ErrMsg, are_names_exist, get_bool, must_folders, names_limit
 
 
 class MoveNewFiles(Recipe):
@@ -35,9 +35,10 @@ names = [                 # names 必须是（不多不少）两个文件夹
 ]
 
 [tasks.options]
-n = 1                   # 移动多少个最新的文件
-suffix = ".jpg"         # 指定文件名的末尾，空字符串表示不限
-overwrite = false       # 是否覆盖同名文件
+n = 1              # 移动多少个最新的文件
+suffix = ".jpg"    # 指定文件名的末尾，空字符串表示不限
+overwrite = false  # 是否覆盖同名文件
+names = []         # 只有当多个任务组合时才使用此项代替命令行输入
 
 # 注意：本插件在设计上并未对移动大量文件的场景进行优化，建议只用来移动少量文件。
 """
@@ -55,6 +56,8 @@ overwrite = false       # 是否覆盖同名文件
         - self.suffix
         - self.overwrite
         """
+        # 要在 dry_run, exec 中确认 is_validated
+        self.is_validated = True
 
         # 优先采用 options 里的 names, 方便多个任务组合。
         options_names = options.get("names", [])
@@ -67,9 +70,10 @@ overwrite = false       # 是否覆盖同名文件
         err = are_names_exist(names)
         if err:
             return err
-        for name in names:
-            if not Path(name).is_dir():
-                return f"{name} should be a directory"
+        err = must_folders(names)
+        if err:
+            return err
+
         self.target_dir = names[0]
         self.src_dir = names[1]
 
@@ -78,11 +82,8 @@ overwrite = false       # 是否覆盖同名文件
             return '"n" should be 1 or larger'
 
         self.suffix = options.get("suffix", "").strip().lower()
-        self.overwrite = options.get("overwrite", False)
-
-        # 要在 dry_run, exec 中确认 is_validated
-        self.is_validated = True
-        return ""
+        self.overwrite, err = get_bool(options, "overwrite")
+        return err
 
     def dry_run(self, really_run: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
@@ -126,14 +127,21 @@ def print_and_move(
 ) -> None:
     for src in src_files:
         dst = dst_folder.joinpath(src.name)
-        if dst.exists() and not overwrite:
+        dst_exists = dst.exists()
+
+        # 优先、重点处理覆盖文件的情形。
+        if dst_exists and overwrite:
+            print(f"-- overwrite {dst}")
+            if move:
+                shutil.move(src, dst)
+            continue
+
+        # 此时必然不可覆盖文件。
+        if dst_exists:
             print(f"-- skip {dst}")
             continue
 
-        if dst.exists():
-            print(f"-- overwrite {dst}")
-        else:
-            print(f"-- move {dst}")
-
+        # 此时 dst 必然不存在，正常移动文件即可。
+        print(f"-- move {dst}")
         if move:
             shutil.move(src, dst)
