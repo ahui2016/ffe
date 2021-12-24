@@ -16,7 +16,14 @@ dependencies = ["humanfriendly"]
 from humanfriendly import format_size
 import shutil
 from pathlib import Path
-from ffe.model import Recipe, ErrMsg, are_names_exist, get_bool, must_folders, names_limit
+from ffe.model import (
+    Recipe,
+    ErrMsg,
+    are_names_exist,
+    get_bool,
+    must_folders,
+    names_limit,
+)
 
 
 class MoveNewFiles(Recipe):

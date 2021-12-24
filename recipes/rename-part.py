@@ -9,7 +9,14 @@
 import glob
 from pathlib import Path
 from enum import Enum, auto
-from ffe.model import Recipe, ErrMsg, are_names_exist, filter_files, get_bool, names_limit
+from ffe.model import (
+    Recipe,
+    ErrMsg,
+    are_names_exist,
+    filter_files,
+    get_bool,
+    names_limit,
+)
 
 
 class EditMethod(Enum):
