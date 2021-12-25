@@ -57,6 +57,7 @@ names = [          # 只有当多个任务组合时才使用此项代替命令�
             suffix=default_suffix,
             plain_file="",
             overwrite=False,
+            names=[],
         )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:

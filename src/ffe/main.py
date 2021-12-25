@@ -18,6 +18,7 @@ from ffe.util import (
     get_proxies,
     peek_lines,
     request,
+    tomli_load,
 )
 from . import (
     __version__,
@@ -276,7 +277,7 @@ def install(ctx, peek, download, install, force, url):
     "in_file",
     "-f",
     "--file",
-    type=click.File("rb"),
+    type=click.Path(),
     help="Specify a TOML file.",
 )
 @click.option(
@@ -302,7 +303,7 @@ def dump(ctx, in_file, recipe_name, names):
     plan = new_plan()
 
     if in_file:
-        plan = new_plan(tomli.load(in_file))
+        plan = new_plan(tomli_load(in_file))
         if names:
             # 用户通过命令输入的 names 拥有最高优先级
             plan["global_names"] = names
@@ -333,7 +334,7 @@ def dump(ctx, in_file, recipe_name, names):
     "in_file",
     "-f",
     "--file",
-    type=click.File("rb"),
+    type=click.Path(),
     help="Specify a TOML file.",
 )
 @click.option(
@@ -363,7 +364,7 @@ def run(ctx, in_file, recipe_name, is_dry, names):
 
     plan = new_plan()
     if in_file:
-        plan = new_plan(tomli.load(in_file))
+        plan = new_plan(tomli_load(in_file))
         if names:
             # 用户通过命令输入的 names 拥有最高优先级
             plan["global_names"] = names

@@ -121,9 +121,10 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
             if x.is_file() and x.__str__().lower().endswith(self.suffix)
         ]
         src_files.sort(key=lambda x: x.lstat().st_ctime, reverse=True)
+        src_files = src_files[: self.n]
         files_size = sum([x.lstat().st_size for x in src_files])
         free_space = shutil.disk_usage(self.target_dir).free
-        return src_files[: self.n], files_size, free_space
+        return src_files, files_size, free_space
 
 
 __recipe__ = MoveNewFiles

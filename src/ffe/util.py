@@ -22,6 +22,19 @@ default_settings = Settings(
 )
 
 
+def tomli_load(file: str) -> dict:
+    """正确处理 utf-16"""
+    with open(file, 'rb') as f:
+        text = f.read()
+        try:
+            text = text.decode('utf-8')
+        except UnicodeDecodeError:
+            text = text.decode('utf-16').encode('utf-8').decode('utf-8')
+        else:
+            raise
+        return tomli.loads(text)
+
+
 def ensure_config_file() -> None:
     app_config_dir.mkdir(parents=True, exist_ok=True)
     if not app_config_file.exists():
