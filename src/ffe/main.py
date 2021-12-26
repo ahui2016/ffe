@@ -305,7 +305,7 @@ def dump(ctx, in_file, recipe_name, names):
     if in_file:
         plan = new_plan(tomli_load(in_file))
         if names:
-            # 用户通过命令输入的 names 拥有最高优先级
+            # 用户通过命令输入的 names 可以覆盖 toml 文件里的 global_names
             plan["global_names"] = names
     else:
         r, err = get_recipe(recipe_name)

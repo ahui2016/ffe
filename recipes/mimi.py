@@ -55,7 +55,6 @@ names = [          # 只有当多个任务组合时才使用此项代替命令�
     def default_options(self) -> dict:
         return dict(
             suffix=default_suffix,
-            plain_file="",
             overwrite=False,
             names=[],
         )

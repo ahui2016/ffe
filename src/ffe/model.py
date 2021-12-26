@@ -5,7 +5,12 @@ from typing import Any, Dict, Tuple, Type, TypedDict, cast
 from abc import ABC, abstractmethod
 
 ErrMsg = str
-"""一个描述错误内容的简单字符串，空字符串表示无错误。"""
+"""一个描述错误内容的简单字符串，空字符串表示无错误。
+
+采用 ErrMsg 而不是采用 exception, 一来是受到 Go 语言的影响，
+另一方面，凡是用到 ErrMsg 的地方都是与业务逻辑密切相关并且需要向用户反馈详细错误信息的地方，
+这些地方用 ErrMsg 更合理。
+"""
 
 
 __input_files_max__ = 99
@@ -163,7 +168,11 @@ def check_plan(plan: Plan) -> ErrMsg:
             return f"not found recipe: {recipe}"
 
         if has_global_names:
-            plan["tasks"][i]["names"] = plan["global_names"]
+            # task["options"]["names"] 具有最高优先级，如果有内容，则清空 task["names"]
+            if len(task["options"].get("names", [])) > 0:
+                plan["tasks"][i]["names"] = []
+            else:
+                plan["tasks"][i]["names"] = plan["global_names"]
         if has_global_options:
             for k, v in plan["global_options"].items():
                 plan["tasks"][i]["options"][k] = v

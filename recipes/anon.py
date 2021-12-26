@@ -33,7 +33,7 @@ names = [        # 每次只能上传一个文件
 [tasks.options]
 auto_copy = true  # 是否自动复制结果到剪贴板
 key = ""          # AnonFiles 账号的 key
-filename = ""     # 只有当多个任务组合时才使用此项代替命令行输入
+names = []        # 只有当多个任务组合时才使用此项代替命令行输入
 
 # 每次只能上传 1 个文件，如果需要一次性上传多个文件，建议先压缩打包。
 # 不设置 key 也可使用，如果注册了 AnonFiles 并且设置了 key, 可登入 AnonFiles 的账号查看已上传文件的列表。
@@ -46,6 +46,7 @@ filename = ""     # 只有当多个任务组合时才使用此项代替命令行
         return dict(
             auto_copy=True,
             key="",
+            names=[],
         )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
@@ -66,10 +67,10 @@ filename = ""     # 只有当多个任务组合时才使用此项代替命令行
         if not self.key:
             self.key = get_config_key()
 
-        # 优先采用 options.filename, 方便多个任务组合。
-        filename = options.get("filename", "")
-        if filename:
-            names = [filename]
+        # 优先采用 options 里的 names, 方便多个任务组合。
+        options_names = options.get("names", [])
+        if options_names:
+            names = options_names
 
         names, err = names_limit(names, 1, 1)
         if err:

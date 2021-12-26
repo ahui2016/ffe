@@ -52,7 +52,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
 
     @property  # 注意: 必须设为 @property
     def default_options(self) -> dict:
-        return dict(n=1, suffix="", overwrite=False)
+        return dict(n=1, suffix="", overwrite=False, names=[])
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
         """初步检查参数（比如文件数量与是否存在），并初始化以下项目：
