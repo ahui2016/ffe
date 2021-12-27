@@ -7,7 +7,7 @@
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
 
 from pathlib import Path
-from ffe.model import Recipe, ErrMsg, are_names_exist, get_bool, must_files, names_limit
+from ffe.model import Recipe, ErrMsg, must_exist, get_bool, must_files, names_limit
 
 suffix = "1"
 """临时文件名的后缀"""
@@ -66,7 +66,7 @@ names = []      # 只有当多个任务组合时才使用此项代替命令行�
         self.names, err = names_limit(names, 2, 2)
         if err:
             return err
-        err = are_names_exist(self.names)
+        err = must_exist(self.names)
         if err:
             return err
         return must_files(self.names)

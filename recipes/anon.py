@@ -12,7 +12,7 @@ AnonFiles 的优点：
 import tomli
 import requests
 import pyperclip
-from ffe.model import Recipe, ErrMsg, are_names_exist, get_bool, names_limit
+from ffe.model import Recipe, ErrMsg, must_exist, get_bool, names_limit
 from ffe.util import app_config_file, get_proxies
 
 
@@ -77,7 +77,7 @@ names = []        # 只有当多个任务组合时才使用此项代替命令行
             return err
         self.filename = names[0]
 
-        return are_names_exist(names)
+        return must_exist(names)
 
     def dry_run(self) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"

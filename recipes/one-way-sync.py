@@ -6,7 +6,7 @@
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
 
-from ffe.model import Recipe, ErrMsg, are_names_exist, names_limit
+from ffe.model import Recipe, ErrMsg, must_exist, names_limit
 
 
 class OneWaySync(Recipe):
@@ -43,7 +43,7 @@ class OneWaySync(Recipe):
         names, err = names_limit(names, 1)
         if err:
             return err
-        err = are_names_exist(names)
+        err = must_exist(names)
         if err:
             return err
 

@@ -9,7 +9,7 @@ ErrMsg = str
 
 采用 ErrMsg 而不是采用 exception, 一来是受到 Go 语言的影响，
 另一方面，凡是用到 ErrMsg 的地方都是与业务逻辑密切相关并且需要向用户反馈详细错误信息的地方，
-这些地方用 ErrMsg 更合理。
+这些地方用 ErrMsg 更合理。 (以后会改用 pypi.org/project/result)
 """
 
 
@@ -182,7 +182,7 @@ def check_plan(plan: Plan) -> ErrMsg:
     return ""
 
 
-def are_names_exist(names: list[str] | list[Path]) -> ErrMsg:
+def must_exist(names: list[str] | list[Path]) -> ErrMsg:
     """names 是文件/文件夹的路径，全部存在时返回空字符串。"""
     for name in names:
         if isinstance(name, str):

@@ -19,7 +19,7 @@ from pathlib import Path
 from ffe.model import (
     Recipe,
     ErrMsg,
-    are_names_exist,
+    must_exist,
     get_bool,
     must_folders,
     names_limit,
@@ -74,7 +74,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
         names, err = names_limit(names, 2, 2)
         if err:
             return err
-        err = are_names_exist(names)
+        err = must_exist(names)
         if err:
             return err
         err = must_folders(names)

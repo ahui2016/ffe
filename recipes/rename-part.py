@@ -12,7 +12,7 @@ from enum import Enum, auto
 from ffe.model import (
     Recipe,
     ErrMsg,
-    are_names_exist,
+    must_exist,
     filter_files,
     get_bool,
     names_limit,
@@ -132,7 +132,7 @@ names = []           # 只有当多个任务组合时才使用此项代替命令
             self.names = [Path(x) for x in names]
 
         self.names = filter_files(self.names)
-        return are_names_exist(self.names)
+        return must_exist(self.names)
 
     def dry_run(self, really_run: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
