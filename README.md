@@ -3,7 +3,7 @@
 ffe: File/Folder Extensible manipulator  
 可轻松地用 Python 来写插件的文件操作工具
 
-Chinese readme (中文说明，更详细): [quick-start.md](docs/quick-start.md) [details.md](docs/details.md)
+Chinese readme (中文说明，更详细): [usage.md](docs/usage.md), [details.md](docs/details.md)
 
 ## Install ffe
 
@@ -23,12 +23,12 @@ Use `ffe install -d https://github.com/ahui2016/ffe/raw/main/recipes/swap.py` to
 
 After inspection, use `ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/swap.py` to install it.
 
-Now, you can use `ffe info -a` to list out all installed recipes, and use `ffe info -r swap` the read more about the recipe (change swap to another recipe's name as you want).
+Now, you can use `ffe info -a` to list out all installed recipes, and use `ffe info -r swap` to read more about the recipe (change swap to another recipe's name as you want).
 
 
 ## Use a recipe
 
-Use `ffe info -r <recipe>` the read more about a recipe, or use `ffe dump -r <recipe> <files...>` to generate a plan of tasks, for example
+Use `ffe info -r <recipe>` to read more about a recipe, or use `ffe dump -r <recipe> <files...>` to generate a plan of tasks, for example
 
 ```
 ffe dump -r swap file1.txt file2.txt > swap.toml
@@ -51,7 +51,7 @@ It is recommended to use a **--dry-run** flag when you are not familiar with the
 
 ## Chinese readme (中文说明)
 
-简单说明 [quick-start.md](docs/quick-start.md)
+简单说明 [usage.md](docs/usage.md)
 
 详细说明 [details.md](docs/details.md)
 
