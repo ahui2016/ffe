@@ -201,6 +201,7 @@ def install(ctx, peek, download, install, force, url):
     [URL] is a url point to a ".py" or ".toml" file.
 
     Warning: Please download and inspect recipes before installing them.
+
     提醒：请先下载 url 指向的文件，检查没有恶意代码后再安装，因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码（自动 import）。
     """
 

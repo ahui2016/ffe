@@ -10,6 +10,9 @@
 
 recipes = [
    'https://github.com/ahui2016/ffe/raw/main/recipes/swap.py',
+   'https://github.com/ahui2016/ffe/raw/main/recipes/anon.py',
+   'https://github.com/ahui2016/ffe/raw/main/recipes/mimi.py',
+   'https://github.com/ahui2016/ffe/raw/main/recipes/tar-xz.py',
    'https://github.com/ahui2016/ffe/raw/main/recipes/rename-part.py',
    'https://github.com/ahui2016/ffe/raw/main/recipes/move-new-files.py',
 ]

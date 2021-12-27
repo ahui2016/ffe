@@ -114,7 +114,7 @@ names = []        # 只有当多个任务组合时才使用此项代替命令行
                     self.output = Path(output)
                 else:
                     # 如果 output 文件名后缀不是 '.tar.xz', 则自动添加后缀。
-                    self.output = Path(output).with_suffix(suffix)
+                    self.output = Path(output + suffix)
 
         return ""
 
