@@ -24,12 +24,12 @@ default_settings = Settings(
 
 def tomli_load(file: str) -> dict:
     """正确处理 utf-16"""
-    with open(file, 'rb') as f:
+    with open(file, "rb") as f:
         text = f.read()
         try:
-            text = text.decode('utf-8')
+            text = text.decode()  # Default encoding is 'utf-8'.
         except UnicodeDecodeError:
-            text = text.decode('utf-16').encode('utf-8').decode('utf-8')
+            text = text.decode("utf-16").encode().decode()
         else:
             raise
         return tomli.loads(text)
@@ -84,5 +84,5 @@ def peek_lines(url: str, proxies: dict = None, resp: Response = None) -> None:
             break
         n += 1
         if line:
-            print(line.decode("utf-8"))
+            print(line.decode())  # Default encoding is 'utf-8'.
     print()

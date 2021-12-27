@@ -1,10 +1,10 @@
 # 从零开始做一个 Python 软件
 
-我以前曾学过 Python, 但用得不算多, 后来有几年完全没有使用 Python, 现在已经忘得差不多了. 趁着这次重新使用 Python, 顺便把这个 "复习+学习" 的过程记录下来.
+我以前曾学过 Python, 但用得不算多, 后来有几年完全没有使用 Python, 现在已经忘得差不多了. 趁着这次重新使用 Python, 顺便把这个 "复习+学习" 的过程记录下来, 也许以后自己回头看也有用.
 
 ## 1. 变量的作用域非常重要
 
-因此, 复习的时候, 我首先就找变量作用域的教程来看, 主要搞懂 nonlocal 和 global 就可以了, 不需要研究得太深.
+因此, 复习的时候, 我首先就找变量作用域的教程来看, 主要搞懂 nonlocal 和 global 就可以了, 不需要研究得太深, 遇到问题再研究.
 
 ## 2. 如何引用模块
 
@@ -22,7 +22,7 @@
 
 在实际动手写程序之前, 我习惯先找一下相关的库, 确定项目的可行性, 如果找不到相关的库, 或者看起来很不好用, 我就要考虑换语言了.
 
-结果找到 importlib, Click, tomli 等库, 看起来都很不错.
+结果找到 importlib, Click, tomli 等, 看起来都很不错.
 
 ## 5. 为发布软件做准备
 
@@ -39,6 +39,8 @@ Python 程序的发布中心是 pypi.org, 为了避免用户名或程序名与�
 ## 7. 虚拟环境 (virtualenv)
 
 对于 Python 来说，虚拟环境非常重要，因此 Python 里有很多工具帮助解决这个问题，官方也提供了工具。一般来说，官方的工具就够用了，详见官方文档 https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
+
+如果需要更丰富的功能，推荐使用 [miniconda](https://docs.conda.io/en/latest/miniconda.html)
 
 ## 8. 生成可执行命令
 

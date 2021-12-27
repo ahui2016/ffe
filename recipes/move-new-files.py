@@ -9,6 +9,8 @@ dependencies = ["humanfriendly"]
         the time of creation on Windows, expressed in seconds.
 
 使用 shutil.move 来移动文件，因此会先尝试改名，改名失败再进行复制和删除操作。
+
+https://github.com/ahui2016/ffe/raw/main/recipes/move-new-files.py
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。

@@ -326,7 +326,8 @@ def dump(ctx, in_file, recipe_name, names):
     del obj["global_names"]
     del obj["global_options"]
 
-    plan_toml = toml.dumps(obj)
+    # 这里的 replace 是为了优化格式，但也有可能因此产生 bug, 等有 bug 再想办法吧。
+    plan_toml = toml.dumps(obj).replace("\n[[", "\n\n\n[[")
     click.echo(plan_toml)
 
 

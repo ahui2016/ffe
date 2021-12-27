@@ -2,6 +2,8 @@
 
 由于本插件专用于批量处理文件名中的一部分，因此可以自动选择需要处理的文件。
 对文件名的处理可选择三种模式: replace(替换字符), head(在开头添加字符), tail(在末尾添加字符)
+
+https://github.com/ahui2016/ffe/raw/main/recipes/rename-part.py
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。

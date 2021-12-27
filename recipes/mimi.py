@@ -5,6 +5,8 @@ dependencies = ["cryptography"]
 但只适用于保密要求不高的情况，比如发送文件给同事、朋友，或暂时保存文件到网盘等，
 用于避免传输过程泄密或被服务商扫描，对于保密要求不高的情况已经够用了。
 缺点：保密性不高；优点：非常方便，不需要密码。
+
+https://github.com/ahui2016/ffe/raw/main/recipes/mimi.py
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。

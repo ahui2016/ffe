@@ -2,6 +2,8 @@
 
 使用打包压缩功能时，需要先进入一个文件夹，用相对路径选择需要打包的文件/文件夹。
 采用 lzma 压缩方法，打包压缩后的后缀名是 '.tar.xz'
+
+https://github.com/ahui2016/ffe/raw/main/recipes/tar-xz.py
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -12,7 +14,7 @@ from enum import Enum, auto
 from ffe.model import Recipe, ErrMsg, must_exist, names_limit
 
 
-suffix = '.tar.xz'
+suffix = ".tar.xz"
 
 
 class Mode(Enum):
@@ -124,6 +126,10 @@ names = []        # 只有当多个任务组合时才使用此项代替命令行
             case Mode.Unzip:
                 with tarfile.open(self.names[0]) as tar:
                     for name in tar.getnames():
+                        if Path(name).is_absolute():
+                            return "压缩包内含有绝对路径的文件名，请使用专业工具处理。"
+                        if name.startswith(".."):
+                            return f"{name} 可能会解压缩到父目录，请使用专业工具处理。"
                         f = self.output.joinpath(name).resolve()
                         if f.exists():
                             return f"Already Exists: '{f}'"
@@ -144,7 +150,7 @@ names = []        # 只有当多个任务组合时才使用此项代替命令行
                 with tarfile.open(self.names[0]) as tar:
                     tar.extractall(self.output)
             case Mode.Zip:
-                with tarfile.open(self.output, 'w:xz') as tar:
+                with tarfile.open(self.output, "w:xz") as tar:
                     for name in self.names:
                         tar.add(name)
         return ""

@@ -2,6 +2,8 @@
 
 只能用于不需要移动文件的情况，比如同一个文件夹（或同一个硬盘分区）内的文件可以操作，
 而跨硬盘分区的文件则无法处理。
+
+https://github.com/ahui2016/ffe/raw/main/recipes/swap.py
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
