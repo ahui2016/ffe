@@ -49,6 +49,15 @@ And then, use `ffe run -f swap.toml` to do the job. You can also run `ffe run -r
 It is recommended to use a **--dry-run** flag when you are not familiar with the recipe yet. for example `ffe run -dry -f swap.toml`.
 
 
+## Get Help
+
+Use commands as below to get more information:
+
+- `ffe --help`
+- `ffe info --help`
+- `ffe info -r <recipe>` etc.
+
+
 ## Chinese readme (中文说明)
 
 简单说明 [usage.md](docs/usage.md)

@@ -103,7 +103,7 @@ names = []      # 只有当多个任务组合时才使用此项代替命令行�
         if self.verbose:
             self.dry_run()
         else:
-            print(f"swap files OK: {name1} and {name2}\n")
+            print(f"swap files OK: {name1} and {name2}")
         return ""
 
 

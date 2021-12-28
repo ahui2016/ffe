@@ -8,7 +8,7 @@ ffe: File/Folder Extensible manipulator
 
 可使用以下命令进行安装：
 
-```
+```sh
 pip install ffe
 ```
 
@@ -16,11 +16,11 @@ pip install ffe
 
 另外，还可以使用 pipx 来安装, pipx 会自动为 ffe 创建一个虚拟环境，不会污染系统环境，并且使用时不用管理虚拟环境，直接使用 ffe 命令即可。
 
-先安装 pipx https://pypa.github.io/pipx/
+pipx 的介绍及安装方法: https://pypa.github.io/pipx/
 
 然后
 
-```
+```sh
 pipx install ffe
 ```
 
@@ -35,34 +35,44 @@ ffe 本身不解决任何具体问题，比如对文件进行改名、复制、�
 
 安装插件前，可用 --peek 参数阅读插件简介，可用 --donwload-only 参数下载插件代码，例如
 
-```
+```sh
 ffe install -p https://github.com/ahui2016/ffe/raw/main/recipes/swap.py
 ```
 
-```
+```sh
 ffe install -d https://github.com/ahui2016/ffe/raw/main/recipes/swap.py > swap.py
 ```
 
 审查代码后，再正式安装
-```
+
+```sh
 ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/swap.py
 ```
 
 ### 批量安装
 
 可以用 -p 参数一次性查看多个插件的简介，用 -i 参数批量安装多个插件，例如
-```
+
+```sh
 ffe install -p https://github.com/ahui2016/ffe/raw/main/recipes/recipes.toml
 ```
 
-```
+```sh
 ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/recipes.toml
 ```
 
-国内如有网络问题，可把以上示例中的网址改为 gitee 地址:
+### 国内网络问题
+
+如果遇到国内网络问题不方便，可把以上示例中的网址改为 gitee 地址:
 
 - `https://gitee.com/ipelago/ffe/raw/main/recipes/swap.py`
 - `https://gitee.com/ipelago/ffe/raw/main/recipes/recipes.toml`
+
+另外，也可以设置 proxy, 比如
+
+```
+ffe info --set-proxy http://127.0.0.1:1081
+```
 
 
 ## 使用插件
@@ -71,12 +81,13 @@ ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/recipes.toml
 
 使用 `ffe dump -r <recipe> <files...>` 可生成任务计划，例如
 
-```
+```sh
 ffe dump -r swap file1.txt file2.txt > swap.toml
 ```
 
 以上命令会生成一个内容如下所示的 TOML 文件:
-```
+
+```toml
 [[tasks]]
 recipe = "swap"
 names = [ "file1.txt", "file2.txt",]
@@ -85,8 +96,17 @@ names = [ "file1.txt", "file2.txt",]
 verbose = true
 ```
 
-And then, use `ffe run -f swap.toml` to do the job. You can also run `ffe run -r swap file1.txt file2.txt`, but without a TOML file you cannot set options.
+然后用 ffe run 命令，比如 `ffe run -f swap.toml` 即可执行任务，另外，也可以不使用 TOML 文件，直接运行 `ffe run -r swap file1.txt file2.txt`, 但必须使用 toml 文件才能设置 options, 而且一个 toml 文件内可包含多个任务，按顺序依次执行。
 
-It is recommended to use a **--dry-run** flag when you are not familiar with the recipe yet. for example `ffe run -dry -f swap.toml`.
+建议在不熟悉的时候多用 --dry-run 参数，比如 `ffe run -dry -f swap.toml` 可以在安全（不修改文件）的前提下尽量预测运行结果。
+
+（dry run 具体如何预测运行结果，需要插件作者实现 dry_run 方法，但这个有套路，比如检查参数是否符合要求，文件是否真实存在等等，具体参考已经写好的插件代码。）
 
 
+## 帮助信息
+
+可以使用以下命令获取帮助信息：
+
+- `ffe --help`
+- `ffe info --help`
+- `ffe info -r <recipe>` 等等
