@@ -40,7 +40,7 @@ Python 程序的发布中心是 pypi.org, 为了避免用户名或程序名与�
 
 对于 Python 来说，虚拟环境非常重要，因此 Python 里有很多工具帮助解决这个问题，官方也提供了工具。一般来说，官方的工具就够用了，详见官方文档 https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
 
-如果需要更丰富的功能，推荐使用 [miniconda](https://docs.conda.io/en/latest/miniconda.html)
+如果需要更丰富的功能，推荐使用 [miniconda](https://docs.conda.io/en/latest/miniconda.html) 或 [pyenv](https://github.com/pyenv/pyenv)
 
 ## 8. 生成可执行命令
 

@@ -26,6 +26,10 @@ pipx install ffe
 
 但是要注意，后续安装插件时，插件依赖的第三方库要用 pipx inject 命令来安装，比如 `pipx inject ffe humanfriendly`。
 
+### Python 3.10
+
+ffe 使用了 Python 3.10 的新特性，比如 type union operator, pattern matching 等，因此，如果你的系统中未安装 Python 3.10, 推荐使用 [pyenv](https://github.com/pyenv/pyenv) 或 [miniconda](https://docs.conda.io/en/latest/miniconda.html) 来安装最新版本的 Python。
+
 
 ## Install recipes (安装插件)
 
@@ -110,3 +114,5 @@ verbose = true
 - `ffe --help`
 - `ffe info --help`
 - `ffe info -r <recipe>` 等等
+
+更详细的介绍看这里 [details.md](details.md)

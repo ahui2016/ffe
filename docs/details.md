@@ -49,12 +49,78 @@ ffe 为你提供以下服务：
 
 ## 安装方法
 
-
-## 插件举例
-
+安装方法看这里 [usage.md](usage.md)
 
 
+## 插件使用示例
 
+- 以下内容假设你已经安装了 ffe
+- 以下内容中涉及 github 的网址，如果遇到网络问题，可参照 [usage.md](usage.md) 里的说明设置 proxy, 或者使用这个文件 https://gitee.com/ipelago/ffe/raw/main/recipes/recipes.toml 里的网址来代替。
+
+### 匿名上传分享文件(AnonFiles)
+
+最近我发现了一个神奇的网站 anonfiles.com, 它的优点是：
+
+1.免费 2.容量大 3.保存时间长 4.国内可直接访问 5.有API 6.匿名
+
+其中有 API 是我最看重的优点，而且它的 API 非常简单易用。
+
+我做了一个名为 anon 的插件，可使用以下命令安装该插件
+
+```sh
+ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/anon.py
+```
+
+安装后，使用命令 `ffe run -r anon <file>` 即可匿名上传文件，上传成功后会自动复制分享地址到剪贴板。
+
+使用命令 `ffe info -r anon` 可查看使用说明。
+
+### 任务组合
+
+有时，我希望先压缩文件，再加密文件，最后上传到 AnonFile, 本来可以把这些功能全都做到一个插件里，但为了作为一个“任务组合”的例子，我把这些功能拆分为几个插件了。
+
+拆分也有好处，因为有时候只想加密，有时只想压缩打包，而且拆分后程序代码也变得更简洁清晰。
+
+- 打包压缩的插件是 https://github.com/ahui2016/ffe/raw/main/recipes/tar-xz.py
+- 加密的插件是 https://github.com/ahui2016/ffe/raw/main/recipes/mimi.py
+
+可逐个单独安装，也可以使用以下命令一次性安装我提供的全部插件：
+
+```sh
+ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/recipes.toml
+```
+
+安装后，使用 dump 命令可以生成 TOML 文件，比如 `ffe dump -r mimi <file>`, 把多个任务的 TOML 内容复制到一个文件里，就可以形成一个组合，比如：
+
+```toml
+[[tasks]]
+recipe = "mimi"    # 第一个任务：加密
+names = [
+  'file.txt',
+]
+
+[tasks.options]
+suffix = ".mimi"
+overwrite = false
+
+[[tasks]]
+recipe = "anon"    # 第二个任务：匿名上传
+names = [
+  'file.txt.mimi',
+]
+
+[tasks.options]
+auto_copy = true
+key = ""
+names = []
+```
+
+然后使用命令 `ffe run -f mimi-anon.toml` 即可依次执行任务。如果有一个文件需要经常加密上传，这个任务组合就很方便了。还可以把打包压缩、删除文件等任务都添加进去，这甚至比 GUI 工具更灵活，编辑 TOML 文件也很直观。
+
+
+## 安全、安全、还是安全
+
+ffe 花了很多
 dry_run 会尽量检查可能发生的错误，建议先 dry_run 一次。
 
 Warning: Please download and inspect recipes before installing them.
