@@ -8,8 +8,7 @@ ffe: File/Folder Extensible manipulator
 
 最开始，我只是想写一个 "调换两个文件名" 的脚本，写好了又想写 "压缩加密上传一条龙" 的脚本，然后我就想，写一大堆脚本看起来一盘散沙，不整齐，而且对命令行的处理、对 TOML 文件的处理又有很多可以共用的代码。
 
-于是我就想把这些脚本集合起来变成一个多功能软件，很自然就想到采用插件的方式比较合理，就这样做出了一个命令行插件工具，第一版是用 Go 语言做的 (看这里 https://v2ex.com/t/820116 ), 后来感觉还是用 Python 做比较合理，就有了这个项目。
-
+于是我就想把这些脚本集合起来变成一个多功能软件，很自然就想到采用插件的方式比较合理，就这样做出了一个命令行插件工具，第一版是用 Go 语言做的 (看这里 https://v2ex.com/t/820116 ), 后来觉得还是用 Python 做比较合理，就有了这个项目。
 
 ### ffe 解决什么问题
 
@@ -31,20 +30,20 @@ ffe 本身不解决任何具体问题，比如对文件进行改名、复制、�
 
 ffe 为你提供以下服务：
 
-- install: 你只需要把插件代码放在 github 或 gitee 之类的仓库中，任何人都能使用 ffe install 命令来安装你写的插件。
-- download: 正式安装插件前可先下载代码，审查后再安装。
-- peek: 下载或安装插件前阅读插件的简单介绍。
-- info: 查看插件的帮助文档。
-- dump: 在执行任务前查看任务计划，并且可生成 toml 文件。
-- dry run: 在正式执行任务前，安全地（不修改文件）预测运行结果。
-- toml: 通过 toml 文件来输入参数，一个 toml 文件可包含多个任务，用 `ffe run -f <recipe.toml>` 命令即可一次性按顺序执行多个任务。
-- proxy: 涉及网络操作时，可设置代理。
+- **install**: 你只需要把插件代码放在 github 或 gitee 之类的仓库中，任何人都能使用 ffe install 命令来安装你写的插件。
+- **download**: 正式安装插件前可先下载代码，审查后再安装。
+- **peek**: 下载或安装插件前阅读插件的简单介绍。
+- **info**: 查看插件的帮助文档。
+- **dump**: 在执行任务前查看任务计划，并且可生成 toml 文件。
+- **dry run**: 在正式执行任务前，安全地（不修改文件）预测运行结果。
+- **toml**: 通过 toml 文件来输入参数，一个 toml 文件可包含多个任务，用 `ffe run -f <recipe.toml>` 命令即可一次性按顺序执行多个任务。
+- **proxy**: 涉及网络操作时，可设置代理。
 
-对于插件作者来说，只需要专注于具体的业务逻辑即可，按照套路填写一些信息后即可获得以上全部功能。
+对于插件作者来说，只需要专注于具体的业务逻辑即可，按照套路填写一些信息后就能获得以上全部功能。
 
 对于用户来说，可以在安装前查看插件简介，可批量安装插件，不同的插件可以组合使用。
 
-另外, CLI 与 TOML 的配合效果很不错, TOML 很直观，容易编辑，比纯 CLI 更直观，又比 GUI 更容易编程开发。
+另外, CLI 与 TOML 的配合效果很不错, TOML 很直观，容易编辑，比纯 CLI 更直观，又比 GUI 更容易编程开发。(参考: [toml.io](https://toml.io))
 
 
 ## 安装方法
@@ -54,14 +53,14 @@ ffe 为你提供以下服务：
 
 ## 插件使用示例
 
-- 以下内容假设你已经安装了 ffe
-- 以下内容中涉及 github 的网址，如果遇到网络问题，可参照 [usage.md](usage.md) 里的说明设置 proxy, 或者使用这个文件 https://gitee.com/ipelago/ffe/raw/main/recipes/recipes.toml 里的网址来代替。
+- 以下内容假设你已经安装了 ffe, 并且已仔细阅读 [usage.md](usage.md) 的内容。
+- 以下内容中涉及 github 的网址，如果遇到网络问题，可参照 [usage.md](usage.md) 里的说明设置 proxy, 或者使用这个文件 https://gitee.com/ipelago/ffe/raw/main/recipes/recipes-gitee.toml 里的网址来代替。
 
 ### 匿名上传分享文件(AnonFiles)
 
 最近我发现了一个神奇的网站 anonfiles.com, 它的优点是：
 
-1.免费 2.容量大 3.保存时间长 4.国内可直接访问 5.有API 6.匿名
+1.免费   2.容量大   3.保存时间长   4.国内可直接访问   5.有API   6.匿名
 
 其中有 API 是我最看重的优点，而且它的 API 非常简单易用。
 
@@ -79,7 +78,7 @@ ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/anon.py
 
 有时，我希望先压缩文件，再加密文件，最后上传到 AnonFile, 本来可以把这些功能全都做到一个插件里，但为了作为一个“任务组合”的例子，我把这些功能拆分为几个插件了。
 
-拆分也有好处，因为有时候只想加密，有时只想压缩打包，而且拆分后程序代码也变得更简洁清晰。
+拆分也有好处，因为有时候只想加密，有时只想压缩打包，而且拆分后程序代码也变得更好理解。
 
 - 打包压缩的插件是 https://github.com/ahui2016/ffe/raw/main/recipes/tar-xz.py
 - 加密的插件是 https://github.com/ahui2016/ffe/raw/main/recipes/mimi.py
@@ -117,20 +116,15 @@ names = []
 
 然后使用命令 `ffe run -f mimi-anon.toml` 即可依次执行任务。如果有一个文件需要经常加密上传，这个任务组合就很方便了。还可以把打包压缩、删除文件等任务都添加进去，这甚至比 GUI 工具更灵活，编辑 TOML 文件也很直观。
 
+### options
 
-## 安全、安全、还是安全
+- 使用 `ffe dump -r <recipe>` 可查看一个插件的默认 options
+- 使用 `ffe run -r <recipe>` 的方式执行任务时，只能使用默认的 options
+- 如果想修改 options 就必须使用 TOML 文件
+- 在 TOML 文件里可以填写 names, 然后用 `ffe run -f recipe.toml file1.jpg file2.jpg` 的方式来指定文件。
+- 还可以用 `ffe dump -f recipe.toml file1.txt` 的方式来预览任务计划。
 
-ffe 花了很多
-dry_run 会尽量检查可能发生的错误，建议先 dry_run 一次。
+### 使用建议
 
-Warning: Please download and inspect recipes before installing them.
-
-提醒：请先下载 url 指向的文件，检查没有恶意代码后再安装，因为一旦安装，下次执行任何 ffe 命令都会自动执行其代码（自动 import）。
-
-另外提供 recipes-gitee.toml
-
-用户通过命令输入的 names 拥有最高优先级，但要注意一个 toml 文件包含多个任务，那么每个任务的 names 都会被命令行输入的 names 覆盖。
-
-每个插件的简介里写明 dependencies, 另外专门做一个全部插件的 requirements.txt
-
-处理 unicode 问题
+- 使用 ffe 前请先认真阅读 [usage.md](usage.md)
+- 对于不熟悉的插件，建议多使用 dump 和 install -dry 来预估运行结果。

@@ -70,7 +70,7 @@ ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/recipes.toml
 如果遇到国内网络问题不方便，可把以上示例中的网址改为 gitee 地址:
 
 - `https://gitee.com/ipelago/ffe/raw/main/recipes/swap.py`
-- `https://gitee.com/ipelago/ffe/raw/main/recipes/recipes.toml`
+- `https://gitee.com/ipelago/ffe/raw/main/recipes/recipes-gitee.toml`
 
 另外，也可以设置 proxy, 比如
 
@@ -116,3 +116,5 @@ verbose = true
 - `ffe info -r <recipe>` 等等
 
 更详细的介绍看这里 [details.md](details.md)
+
+另外，欢迎通过 issue 提交插件，我会不定期整理第三方插件列表。
