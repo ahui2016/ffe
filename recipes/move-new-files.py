@@ -28,6 +28,7 @@ from ffe.model import (
 )
 
 
+# 每个插件都必须继承 model.py 里的 Recipe
 class MoveNewFiles(Recipe):
     @property  # 注意: 必须设为 @property
     def name(self) -> str:

@@ -9,6 +9,7 @@
 from ffe.model import Recipe, ErrMsg, must_exist, names_limit
 
 
+# 每个插件都必须继承 model.py 里的 Recipe
 class OneWaySync(Recipe):
     @property  # 必须设为 @property
     def name(self) -> str:

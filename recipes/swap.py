@@ -18,7 +18,7 @@ suffix_limit = 20
 """限制最多可连续添加多少次 suffix, 避免文件名无限变长"""
 
 
-# 关于具体如何实现一个 Recipe, 请参考项目源码中的 model.py
+# 每个插件都必须继承 model.py 里的 Recipe
 class Swap(Recipe):
     @property  # 注意: 必须有 @property
     def name(self) -> str:

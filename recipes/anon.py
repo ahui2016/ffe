@@ -18,6 +18,7 @@ from ffe.model import Recipe, ErrMsg, must_exist, get_bool, names_limit
 from ffe.util import app_config_file, get_proxies
 
 
+# 每个插件都必须继承 model.py 里的 Recipe
 class Anon(Recipe):
     @property  # 必须设为 @property
     def name(self) -> str:

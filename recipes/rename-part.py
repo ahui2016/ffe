@@ -30,6 +30,7 @@ class EditMethod(Enum):
 new_filenames = set()
 
 
+# 每个插件都必须继承 model.py 里的 Recipe
 class RenamePart(Recipe):
     @property  # 必须设为 @property
     def name(self) -> str:
