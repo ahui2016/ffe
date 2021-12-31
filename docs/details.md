@@ -89,7 +89,9 @@ ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/anon.py
 ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/recipes.toml
 ```
 
-安装后，使用 dump 命令可以生成 TOML 文件，比如 `ffe dump -r mimi <file>`, 把多个任务的 TOML 内容复制到一个文件里，就可以形成一个组合，比如：
+安装后，使用 dump 命令可以生成 TOML 文件，比如 `ffe dump -r mimi <file>`
+
+把多个任务的 TOML 内容复制到一个文件里，就可以形成一个组合，比如：
 
 ```toml
 [[tasks]]
@@ -111,7 +113,6 @@ names = [
 [tasks.options]
 auto_copy = true
 key = ""
-names = []
 ```
 
 然后使用命令 `ffe run -f mimi-anon.toml` 即可依次执行任务。如果有一个文件需要经常加密上传，这个任务组合就很方便了。还可以把打包压缩、删除文件等任务都添加进去，这甚至比 GUI 工具更灵活，编辑 TOML 文件也很直观。

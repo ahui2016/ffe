@@ -98,7 +98,7 @@ names = []           # 只有当多个任务组合时才使用此项代替命令
             return f"{e1} {e2}"
 
         # auto 模式只适用于 EditMethod.REPLACE
-        if self.method is not EditMethod.Replace:
+        if self.auto and self.method is not EditMethod.Replace:
             print("set auto to False because the method is not REPLACE")
             self.auto = False
 
