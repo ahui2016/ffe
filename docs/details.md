@@ -1,6 +1,6 @@
 # ffe
 
-ffe: File/Folder Extensible manipulator
+ffe: File/Folder Extensible manipulator  
 可轻松地用 Python 来写插件的文件操作工具
 
 

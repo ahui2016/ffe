@@ -13,7 +13,7 @@ python -m pip install ffe
 
 ## Install recipes
 
-Ffe by it self can do nothing, you can write recipes yourself or download recipes written by others.
+Ffe by itself can do nothing, you can write recipes yourself or download recipes written by others.
 
 Please always inspect the recipe before installing it. For example,
 

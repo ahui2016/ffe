@@ -6,7 +6,9 @@ ffe: File/Folder Extensible manipulator
 
 ## Install ffe
 
-可使用以下命令进行安装：
+ffe 使用了 Python 3.10 的新特性，比如 type union operator, pattern matching 等，因此，如果你的系统中未安装 Python 3.10, 推荐使用 [pyenv](https://github.com/pyenv/pyenv) 或 [miniconda](https://docs.conda.io/en/latest/miniconda.html) 来安装最新版本的 Python。
+
+可使用以下命令进行安装 ffe:
 
 ```sh
 pip install ffe
@@ -18,17 +20,11 @@ pip install ffe
 
 pipx 的介绍及安装方法: https://pypa.github.io/pipx/
 
-然后
-
 ```sh
 pipx install ffe
 ```
 
 但是要注意，后续安装插件时，插件依赖的第三方库要用 pipx inject 命令来安装，比如 `pipx inject ffe humanfriendly`。
-
-### Python 3.10
-
-ffe 使用了 Python 3.10 的新特性，比如 type union operator, pattern matching 等，因此，如果你的系统中未安装 Python 3.10, 推荐使用 [pyenv](https://github.com/pyenv/pyenv) 或 [miniconda](https://docs.conda.io/en/latest/miniconda.html) 来安装最新版本的 Python。
 
 
 ## Install recipes (安装插件)
@@ -67,7 +63,7 @@ ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/recipes.toml
 
 ### 国内网络问题
 
-如果遇到国内网络问题不方便，可把以上示例中的网址改为 gitee 地址:
+如果遇到国内网络问题，可把以上示例中的网址改为 gitee 地址:
 
 - `https://gitee.com/ipelago/ffe/raw/main/recipes/swap.py`
 - `https://gitee.com/ipelago/ffe/raw/main/recipes/recipes-gitee.toml`
