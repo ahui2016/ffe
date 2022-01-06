@@ -45,6 +45,7 @@ def check(ctx: click.Context, err: ErrMsg) -> None:
     message="%(prog)s version: %(version)s",
 )
 def cli():
+    """ffe: File/Folder Extensible manipulator (可扩展的文件操作工具)"""
     pass
 
 
@@ -170,6 +171,7 @@ def info(ctx, all, recipe_name):
         click.echo(ctx.get_help())
         ctx.exit()
     print_recipe_help(recipe_name)
+    ctx.exit()
 
 
 @cli.command()
@@ -271,6 +273,7 @@ def install(ctx, peek, download, install, force, url):
                 click.echo(f"install: {r_url}")
                 with open(dst, "wb") as f:
                     f.write(resp.content)
+    ctx.exit()
 
 
 @cli.command()
@@ -329,6 +332,7 @@ def dump(ctx, in_file, recipe_name, names):
     # 这里的 replace 是为了优化格式，但也有可能因此产生 bug, 等有 bug 再想办法吧。
     plan_toml = toml.dumps(obj).replace("\n[[", "\n\n\n[[")
     click.echo(plan_toml)
+    ctx.exit()
 
 
 @cli.command()
@@ -408,6 +412,7 @@ def run(ctx, in_file, recipe_name, is_dry, names):
         click.echo("\nThe dry run has been completed.\n")
     else:
         click.echo("\nAll tasks have been completed.\n")
+    ctx.exit()
 
 
 # 初始化
