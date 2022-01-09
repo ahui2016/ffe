@@ -45,7 +45,10 @@ def check(ctx: click.Context, err: ErrMsg) -> None:
     message="%(prog)s version: %(version)s",
 )
 def cli():
-    """ffe: File/Folder Extensible manipulator (可扩展的文件操作工具)"""
+    """ffe: File/Folder Extensible manipulator (可扩展的文件操作工具)
+
+    https://pypi.org/project/ffe/
+    """
     pass
 
 

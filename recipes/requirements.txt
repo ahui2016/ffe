@@ -1,3 +1,4 @@
 humanfriendly
 pyperclip
 cryptography
+ibm-cos-sdk
