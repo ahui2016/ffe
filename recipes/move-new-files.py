@@ -48,14 +48,16 @@ names = [                 # names 必须是（不多不少）两个文件夹
 n = 1              # 移动多少个最新的文件
 suffix = ".jpg"    # 指定文件名的末尾，空字符串表示不限
 overwrite = false  # 是否覆盖同名文件
+copy_only = false  # 设为 true 则只是复制，不删除源头文件
 names = []         # 只有当多个任务组合时才使用此项代替命令行输入
 
 # 注意：本插件在设计上并未对移动大量文件的场景进行优化，建议只用来移动少量文件。
+# version: 2022-01-11
 """
 
     @property  # 注意: 必须设为 @property
     def default_options(self) -> dict:
-        return dict(n=1, suffix="", overwrite=False, names=[])
+        return dict(n=1, suffix="", overwrite=False, copy_only=False, names=[])
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
         """初步检查参数（比如文件数量与是否存在），并初始化以下项目：
@@ -65,6 +67,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
         - self.n
         - self.suffix
         - self.overwrite
+        - self.copy_only
         """
         # 要在 dry_run, exec 中确认 is_validated
         self.is_validated = True
@@ -93,14 +96,16 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
 
         self.suffix = options.get("suffix", "").strip().lower()
         self.overwrite, err = get_bool(options, "overwrite")
+        self.copy_only = options.get("copy_only", False)
         return err
 
     def dry_run(self, really_run: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         src_files, files_size, free_space = self.get_new_files()
+        verb = "Copy" if self.copy_only else "Move"
         print(
-            f"Move [{len(src_files)}] files from [{self.src_dir}] to [{self.target_dir}]"
+            f"{verb} [{len(src_files)}] files from [{self.src_dir}] to [{self.target_dir}]"
         )
 
         print(
@@ -109,7 +114,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
         if free_space <= files_size:
             return f"Not enough space in {self.target_dir}"
 
-        print_and_move(Path(self.target_dir), src_files, self.overwrite, really_run)
+        print_and_move(Path(self.target_dir), src_files, self.overwrite, self.copy_only, really_run)
         return ""
 
     def exec(self) -> ErrMsg:
@@ -134,7 +139,7 @@ __recipe__ = MoveNewFiles
 
 
 def print_and_move(
-    dst_folder: Path, src_files: list[Path], overwrite: bool, move: bool = False
+    dst_folder: Path, src_files: list[Path], overwrite: bool, copy_only: bool, really_run: bool = False
 ) -> None:
     for src in src_files:
         dst = dst_folder.joinpath(src.name)
@@ -143,16 +148,24 @@ def print_and_move(
         # 优先、重点处理覆盖文件的情形。
         if dst_exists and overwrite:
             print(f"-- overwrite {dst}")
-            if move:
-                shutil.move(src, dst)
+            if really_run:
+                copy_or_move(src, dst, copy_only)
             continue
 
-        # 此时必然不可覆盖文件。
-        if dst_exists:
+        # 不覆盖文件。
+        if dst_exists and not overwrite:
             print(f"-- skip {dst}")
             continue
 
         # 此时 dst 必然不存在，正常移动文件即可。
-        print(f"-- move {dst}")
-        if move:
-            shutil.move(src, dst)
+        verb = "copy" if copy_only else "move"
+        print(f"-- {verb} {dst}")
+        if really_run:
+            copy_or_move(src, dst, copy_only)
+
+
+def copy_or_move(src: Path, dst: Path, copy_only: bool) -> None:
+    if copy_only:
+        shutil.copyfile(src, dst)
+    else:
+        shutil.move(src, dst)

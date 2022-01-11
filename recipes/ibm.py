@@ -56,25 +56,30 @@ class IBM(Recipe):
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
-        cos = get_ibm_resource()
-        get_bucket_files(cos, 'mima-go')
+        cfg_ibm = get_config()
+        cos = get_ibm_resource(cfg_ibm)
+        # get_buckets(cos)
+        get_bucket_files(cos, cfg_ibm["bucket_name"])
         return ""
 
 
 __recipe__ = IBM
 
 
-def get_ibm_resource():
+def get_config() -> dict:
     with open(app_config_file, "rb") as f:
         config = tomli.load(f)
-        cfg_ibm = config["ibm"]
-        return ibm_boto3.resource(
-            "s3",
-            ibm_api_key_id=cfg_ibm["ibm_api_key_id"],
-            ibm_service_instance_id=cfg_ibm["ibm_service_instance_id"],
-            config=Config(signature_version="oauth"),
-            endpoint_url=cfg_ibm["endpoint_url"]
-        )
+        return config["ibm"]
+
+
+def get_ibm_resource(cfg_ibm: dict):
+    return ibm_boto3.resource(
+        "s3",
+        ibm_api_key_id=cfg_ibm["ibm_api_key_id"],
+        ibm_service_instance_id=cfg_ibm["ibm_service_instance_id"],
+        config=Config(signature_version="oauth"),
+        endpoint_url=cfg_ibm["endpoint_url"]
+    )
 
 
 def get_buckets(cos):

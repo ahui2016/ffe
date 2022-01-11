@@ -28,6 +28,8 @@ import click
 import tomli
 import toml
 
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
 
 def check(ctx: click.Context, err: ErrMsg) -> None:
     """检查 err, 有错误则打印并终止程序，无错误则什么都不用做。"""
@@ -37,6 +39,7 @@ def check(ctx: click.Context, err: ErrMsg) -> None:
 
 
 @click.group()
+@click.help_option("-h", "--help")
 @click.version_option(
     __version__,
     "-V",
@@ -44,12 +47,21 @@ def check(ctx: click.Context, err: ErrMsg) -> None:
     package_name=__package_name__,
     message="%(prog)s version: %(version)s",
 )
-def cli():
+@click.option(
+    "safe",
+    "-s",
+    "--safe-mode",
+    is_flag=True,
+    help="Safe mode: do not load recipes."
+)
+def cli(safe):
     """ffe: File/Folder Extensible manipulator (可扩展的文件操作工具)
 
     https://pypi.org/project/ffe/
     """
-    pass
+    if not safe:
+        init_recipes(__recipes_folder__)
+
 
 
 # 以上是主命令
@@ -120,7 +132,7 @@ def set_proxy(ctx, param, value):
     ctx.exit()
 
 
-@cli.command()
+@cli.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
     "all", "-a", "--all-recipes", is_flag=True, help="List out all registered recipes."
 )
@@ -158,13 +170,13 @@ def info(ctx, all, recipe_name):
 
     if all:
         if not __recipes__:
-            click.echo("Error: Cannot find any recipe.\n")
+            click.echo("Warning: Cannot find any recipe.\n")
             click.echo(f"Please put some recipes in {__recipes_folder__}\n")
             click.echo(
-                'Use "ffe info --set-recipes <DIRECTORY PATH>" to change the directory contains recipes.\n'
+                'Use "ffe info --set-recipes <DIRECTORY>" to change the directory contains recipes.\n'
             )
             click.echo(
-                'Use "ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/swap.py" to download an example recipe\n'
+                'Use "ffe install -i https://github.com/ahui2016/ffe/raw/main/recipes/swap.py" to install an example recipe\n'
             )
             ctx.exit()
         click.echo(f"All registered recipes: {', '.join(__recipes__.keys())}")
@@ -177,7 +189,7 @@ def info(ctx, all, recipe_name):
     ctx.exit()
 
 
-@cli.command()
+@cli.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
     "peek", "-p", "--peek", is_flag=True, help="Print the first few lines of a file."
 )
@@ -279,7 +291,7 @@ def install(ctx, peek, download, install, force, url):
     ctx.exit()
 
 
-@cli.command()
+@cli.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
     "in_file",
     "-f",
@@ -338,7 +350,7 @@ def dump(ctx, in_file, recipe_name, names):
     ctx.exit()
 
 
-@cli.command()
+@cli.command(context_settings=CONTEXT_SETTINGS)
 @click.option(
     "in_file",
     "-f",
@@ -421,7 +433,6 @@ def run(ctx, in_file, recipe_name, is_dry, names):
 # 初始化
 ensure_config_file()
 __recipes_folder__ = ensure_recipes_folder()
-init_recipes(__recipes_folder__)
 
 if __name__ == "__main__":
     cli(obj={})
