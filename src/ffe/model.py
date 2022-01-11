@@ -1,7 +1,7 @@
 import sys
 import importlib.util
 from pathlib import Path
-from typing import Any, Dict, Tuple, Type, TypedDict, cast
+from typing import Any, Type, TypedDict, cast
 from abc import ABC, abstractmethod
 
 # 采用 ErrMsg 而不是采用 exception, 一来是受到 Go 语言的影响，
@@ -89,7 +89,7 @@ class Plan(TypedDict):
     tasks: list[Task]
 
 
-def new_plan(obj: Dict[str, Any] = None) -> Plan:
+def new_plan(obj: dict[str, Any] = None) -> Plan:
     plan = Plan(global_names=[], global_options={}, tasks=[])
     if not obj:
         return plan
@@ -236,7 +236,7 @@ def names_limit(
     return names, expected
 
 
-def get_bool(options: dict, key: str) -> Tuple[bool, ErrMsg]:
+def get_bool(options: dict, key: str) -> tuple[bool, ErrMsg]:
     v = options.get(key, False)
     if not isinstance(v, bool):
         return False, f"Please set {key} to 'true' or 'false'"

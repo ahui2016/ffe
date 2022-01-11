@@ -7,6 +7,7 @@ dependencies = ["cryptography"]
 缺点：保密性不高；优点：非常方便，不需要密码。
 
 https://github.com/ahui2016/ffe/raw/main/recipes/mimi.py
+# version: 2022-01-11
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -14,7 +15,7 @@ https://github.com/ahui2016/ffe/raw/main/recipes/mimi.py
 from cryptography.fernet import Fernet
 from pathlib import Path
 from enum import Enum, auto
-from ffe.model import Recipe, ErrMsg, get_bool, names_limit
+from ffe.model import Recipe, ErrMsg, get_bool, must_exist, must_files, names_limit
 
 
 len_of_key = 43
@@ -52,6 +53,7 @@ names = [          # 只有当多个任务组合时才使用此项代替命令�
 # 本插件加密时把随机生成的 key 混在加密后的数据里，因此加密、解密都不需要输入密码，
 # 但只适用于保密要求不高的情况，比如发送文件给同事、朋友，或暂时保存文件到网盘等，
 # 用于避免传输过程泄密或被服务商扫描，对于保密要求不高的情况已经够用了。
+# version: 2022-01-11
 """
 
     @property  # 必须设为 @property
@@ -102,13 +104,21 @@ names = [          # 只有当多个任务组合时才使用此项代替命令�
 
         match self.method:
             case Method.Encrypt:
-                if not self.plain_file.exists():
-                    return f"Not Exists: {self.plain_file}"
+                err = must_exist([self.plain_file])
+                if err:
+                    return err
+                err = must_files([self.plain_file])
+                if err:
+                    return err
                 if (not self.overwrite) and self.cipher_file.exists():
                     return f"Already Exists: {self.cipher_file}"
             case Method.Decrypt:
-                if not self.cipher_file.exists():
-                    return f"Not Exists: {self.cipher_file}"
+                err = must_exist([self.cipher_file])
+                if err:
+                    return err
+                err = must_files([self.cipher_file])
+                if err:
+                    return err
                 if (not self.overwrite) and self.plain_file.exists():
                     return f"Already Exists: {self.plain_file}"
         return ""

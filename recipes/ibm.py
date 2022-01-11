@@ -18,13 +18,21 @@ https://github.com/ahui2016/ffe/raw/main/recipes/ibm.py
 - 把相关信息填写到 ffe-config.toml (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
 """
 
-from typing import cast
 import ibm_boto3
 from ibm_botocore.client import Config, ClientError
 import tomli
-import requests
-from ffe.model import Recipe, ErrMsg, must_exist, get_bool, names_limit
-from ffe.util import app_config_file, get_proxies
+import arrow
+from pathlib import Path
+from ffe.model import Recipe, ErrMsg, get_bool, must_exist, must_files, names_limit
+from ffe.util import app_config_file
+
+MB = 1024 * 1024
+
+# set 5 MB chunks
+part_size = 5 * MB
+
+# set default threadhold to 15 MB
+default_limit = 15
 
 
 # 每个插件都必须继承 model.py 里的 Recipe
@@ -39,27 +47,70 @@ class IBM(Recipe):
 
     @property  # 必须设为 @property
     def default_options(self) -> dict:
-        return dict()
+        return dict(
+            add_prefix=True,
+            size_limit=0,
+            names=[],
+        )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
         """初步检查参数（比如文件数量与是否存在），并初始化以下项目：
+
+        - self.item_name
+        - self.size_limit
+        - self.filename
         """
         # 要在 dry_run, exec 中确认 is_validated
         self.is_validated = True
+
+        # 优先采用 options 里的 names, 方便多个任务组合。
+        options_names = options.get("names", [])
+        if options_names:
+            names = options_names
+
+        # set self.filename
+        names, err = names_limit(names, 1, 1)
+        if err:
+            return err
+        self.filename = names[0]
+
+        err = must_exist(names)
+        if err:
+            return err
+        err = must_files(names)
+        if err:
+            return err
+
+        # set self.item_name
+        add_prefix, err = get_bool(options, "add_prefix")
+        if err:
+            return err
+        self.item_name = Path(self.filename).name
+        if add_prefix:
+            prefix = f"{arrow.now().format('YYYYMMDDHHmmss')}-"
+            self.item_name = prefix + self.item_name
+
+        # set self.size_limit
+        limit = options.get("size_limit", 0)
+        if not limit:
+            limit = 15
+        self.size_limit = limit * MB
+
         return ""
 
     def dry_run(self) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
-        print("There is no dry run for this recipe.")
-        print("本插件涉及第三方服务，因此无法提供 dry run.")
+        print(f"Starting transfer {self.item_name} to IBM COS\n")
+        print("本插件涉及第三方服务，因此无法继续预测执行结果。")
         return ""
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
         cfg_ibm = get_config()
         cos = get_ibm_resource(cfg_ibm)
-        # get_buckets(cos)
-        get_bucket_files(cos, cfg_ibm["bucket_name"])
+        upload(
+            cos, cfg_ibm["bucket_name"], self.item_name, self.size_limit, self.filename
+        )
         return ""
 
 
@@ -78,29 +129,29 @@ def get_ibm_resource(cfg_ibm: dict):
         ibm_api_key_id=cfg_ibm["ibm_api_key_id"],
         ibm_service_instance_id=cfg_ibm["ibm_service_instance_id"],
         config=Config(signature_version="oauth"),
-        endpoint_url=cfg_ibm["endpoint_url"]
+        endpoint_url=cfg_ibm["endpoint_url"],
     )
 
 
-def get_buckets(cos):
-    print("Retrieving list of buckets")
+# https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-multipart
+def upload(cos, bucket_name: str, item_name: str, size_limit: int, file_path: str):
     try:
-        buckets = cos.buckets.all()
-        for bucket in buckets:
-            print("Bucket Name: {0}".format(bucket.name))
+        print(f"Starting transfer {item_name} to IBM COS\n")
+
+        # set the transfer threshold and chunk size
+        transfer_config = ibm_boto3.s3.transfer.TransferConfig(
+            multipart_threshold=size_limit, multipart_chunksize=part_size
+        )
+
+        # the upload_fileobj method will automatically execute a multi-part upload
+        # in 5 MB chunks for all files over 15 MB
+        with open(file_path, "rb") as file_data:
+            cos.Object(bucket_name, item_name).upload_fileobj(
+                Fileobj=file_data, Config=transfer_config
+            )
+
+        print("Transfer Complete!\n")
     except ClientError as be:
         print("CLIENT ERROR: {0}\n".format(be))
     except Exception as e:
-        print("Unable to retrieve list buckets: {0}".format(e))
-
-
-def get_bucket_files(cos, bucket_name):
-    print("Retrieving bucket contents from: {0}".format(bucket_name))
-    try:
-        files = cos.Bucket(bucket_name).objects.all()
-        for file in files:
-            print(f"Item: {file.key} ({file.size} bytes) ctime:{file.last_modified}")
-    except ClientError as be:
-        print("CLIENT ERROR: {0}\n".format(be))
-    except Exception as e:
-        print("Unable to retrieve bucket contents: {0}".format(e))
+        print("Unable to complete multi-part upload: {0}".format(e))

@@ -48,11 +48,7 @@ def check(ctx: click.Context, err: ErrMsg) -> None:
     message="%(prog)s version: %(version)s",
 )
 @click.option(
-    "safe",
-    "-s",
-    "--safe-mode",
-    is_flag=True,
-    help="Safe mode: do not load recipes."
+    "safe", "-s", "--safe-mode", is_flag=True, help="Safe mode: do not load recipes."
 )
 def cli(safe):
     """ffe: File/Folder Extensible manipulator (可扩展的文件操作工具)
@@ -61,7 +57,6 @@ def cli(safe):
     """
     if not safe:
         init_recipes(__recipes_folder__)
-
 
 
 # 以上是主命令

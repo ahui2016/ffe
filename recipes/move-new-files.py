@@ -11,6 +11,7 @@ dependencies = ["humanfriendly"]
 使用 shutil.move 来移动文件，因此会先尝试改名，改名失败再进行复制和删除操作。
 
 https://github.com/ahui2016/ffe/raw/main/recipes/move-new-files.py
+# version: 2022-01-11
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -114,7 +115,9 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
         if free_space <= files_size:
             return f"Not enough space in {self.target_dir}"
 
-        print_and_move(Path(self.target_dir), src_files, self.overwrite, self.copy_only, really_run)
+        print_and_move(
+            Path(self.target_dir), src_files, self.overwrite, self.copy_only, really_run
+        )
         return ""
 
     def exec(self) -> ErrMsg:
@@ -139,7 +142,11 @@ __recipe__ = MoveNewFiles
 
 
 def print_and_move(
-    dst_folder: Path, src_files: list[Path], overwrite: bool, copy_only: bool, really_run: bool = False
+    dst_folder: Path,
+    src_files: list[Path],
+    overwrite: bool,
+    copy_only: bool,
+    really_run: bool = False,
 ) -> None:
     for src in src_files:
         dst = dst_folder.joinpath(src.name)
