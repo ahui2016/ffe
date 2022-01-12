@@ -13,6 +13,8 @@ ErrMsg = str
 __input_files_max__ = 99
 """默认文件/文件夹数量上限(不是实际处理数量，而是输入参数个数)"""
 
+MB = 1024 * 1024
+"""用于方便计算文件体积"""
 
 class Recipe(ABC):
     @property
@@ -212,6 +214,16 @@ def must_files(names: list[str] | list[Path]) -> ErrMsg:
 def filter_files(names: list[Path]) -> list[Path]:
     """只要文件，不要文件夹"""
     return [x for x in names if x.is_file()]
+
+
+def filesize_limit(name: str | Path, limit: int) -> ErrMsg:
+    """限制文件体积不可超过 limit (单位:MB)"""
+    if isinstance(name, str):
+        name = Path(name)
+    filesize = name.lstat().st_size / MB
+    if filesize > limit:
+        return f"{name}\nfile size ({filesize:.2f} MB) exceeds the limit ({limit} MB)\n"
+    return ""
 
 
 def names_limit(

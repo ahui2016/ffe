@@ -4,3 +4,9 @@ use_proxy = true
 
 [anon]
 key = '12a3bcd123456789'
+
+[ibm]
+bucket_name = ""
+ibm_api_key_id = ""
+ibm_service_instance_id = "crn:v1:bluemix:public:cloud-object-storage:global: ......"
+endpoint_url = "https://s3.jp-tok.cloud-object-storage.appdomain.cloud"

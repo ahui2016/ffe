@@ -1,7 +1,12 @@
-"""ibm: 上传文件到 IBM COS
+"""ibm-upload: 上传文件到 IBM COS
 dependencies = ["ibm-cos-sdk"]
 
-https://github.com/ahui2016/ffe/raw/main/recipes/ibm.py
+IBM COS 的优点：
+1.有免费套餐  2.不需要登记信用卡  3.国内可直接访问
+
+缺点：免费用户 30 天不活动，数据有可能被删除。
+
+https://github.com/ahui2016/ffe/raw/main/recipes/ibm-upload.py
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -10,12 +15,6 @@ https://github.com/ahui2016/ffe/raw/main/recipes/ibm.py
 - 参考1 (重要) https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python
 - 参考2 https://github.com/IBM/ibm-cos-sdk-python
 - 参考3 https://cloud.ibm.com/apidocs/cos/cos-compatibility?code=python
-
-- 注册一个 cloud.ibm.com 账号
-- 启用 IBM Cloud Object Storage 并且创建一个 bucket
-- pip install ibm-cos-sdk
-- Gather required information (收集必要参数) https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-prereqs
-- 把相关信息填写到 ffe-config.toml (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
 """
 
 import ibm_boto3
@@ -23,10 +22,8 @@ from ibm_botocore.client import Config, ClientError
 import tomli
 import arrow
 from pathlib import Path
-from ffe.model import Recipe, ErrMsg, get_bool, must_exist, must_files, names_limit
+from ffe.model import Recipe, ErrMsg, filesize_limit, get_bool, must_exist, must_files, names_limit, MB
 from ffe.util import app_config_file
-
-MB = 1024 * 1024
 
 # set 5 MB chunks
 part_size = 5 * MB
@@ -36,14 +33,32 @@ default_limit = 15
 
 
 # 每个插件都必须继承 model.py 里的 Recipe
-class IBM(Recipe):
+class IBMUpload(Recipe):
     @property  # 必须设为 @property
     def name(self) -> str:
-        return "ibm"
+        return "ibm-upload"
 
     @property  # 必须设为 @property
     def help(self) -> str:
-        return """upload to IBM COS"""
+        return """
+[[tasks]]
+recipe = "ibm-upload"  # 上传文件到 IBM COS
+names = [              # 每次只能上传一个文件
+    'file.tar.gz'
+]
+
+[tasks.options]
+add_prefix = true  # 是否自动添加前缀
+size_limit = 0     # 单位:MB, 设为 0 则采用默认上限
+names = []  # 只有当多个任务组合时才使用此项代替命令行输入
+
+# 使用本插件需要 IBM Cloud 账号：
+# - 注册一个 cloud.ibm.com 账号
+# - 启用 IBM Cloud Object Storage 并且创建一个 bucket https://cloud.ibm.com/objectstorage/create
+# - pip install ibm-cos-sdk
+# - 收集必要参数 https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-prereqs
+# - 把相关信息填写到 ffe-config.toml (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
+"""
 
     @property  # 必须设为 @property
     def default_options(self) -> dict:
@@ -63,6 +78,12 @@ class IBM(Recipe):
         # 要在 dry_run, exec 中确认 is_validated
         self.is_validated = True
 
+        # set self.size_limit
+        limit = options.get("size_limit", 0)
+        if not limit:
+            limit = default_limit
+        self.size_limit = limit
+
         # 优先采用 options 里的 names, 方便多个任务组合。
         options_names = options.get("names", [])
         if options_names:
@@ -80,6 +101,9 @@ class IBM(Recipe):
         err = must_files(names)
         if err:
             return err
+        err = filesize_limit(self.filename, self.size_limit)
+        if err:
+            return err
 
         # set self.item_name
         add_prefix, err = get_bool(options, "add_prefix")
@@ -90,17 +114,13 @@ class IBM(Recipe):
             prefix = f"{arrow.now().format('YYYYMMDDHHmmss')}-"
             self.item_name = prefix + self.item_name
 
-        # set self.size_limit
-        limit = options.get("size_limit", 0)
-        if not limit:
-            limit = 15
-        self.size_limit = limit * MB
-
         return ""
 
     def dry_run(self) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
-        print(f"Starting transfer {self.item_name} to IBM COS\n")
+        print(f"Upload file: {self.filename}")
+        print(f"as name: {self.item_name} in IBM COS")
+        print(f"file size: {Path(self.filename).lstat().st_size/MB:.4f} MB\n")
         print("本插件涉及第三方服务，因此无法继续预测执行结果。")
         return ""
 
@@ -114,7 +134,7 @@ class IBM(Recipe):
         return ""
 
 
-__recipe__ = IBM
+__recipe__ = IBMUpload
 
 
 def get_config() -> dict:
