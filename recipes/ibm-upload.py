@@ -17,12 +17,23 @@ https://github.com/ahui2016/ffe/raw/main/recipes/ibm-upload.py
 - 参考3 https://cloud.ibm.com/apidocs/cos/cos-compatibility?code=python
 """
 
+from typing import TypedDict
 import ibm_boto3
 from ibm_botocore.client import Config, ClientError
 import tomli
 import arrow
+import json
 from pathlib import Path
-from ffe.model import Recipe, ErrMsg, filesize_limit, get_bool, must_exist, must_files, names_limit, MB
+from ffe.model import (
+    Recipe,
+    ErrMsg,
+    filesize_limit,
+    get_bool,
+    must_exist,
+    must_files,
+    names_limit,
+    MB,
+)
 from ffe.util import app_config_file
 
 # set 5 MB chunks
@@ -30,6 +41,12 @@ part_size = 5 * MB
 
 # set default threadhold to 15 MB
 default_limit = 15
+
+files_summary_name = "files-summary.json"
+
+
+class FilesSummary(TypedDict):
+    date_count: dict[str, int]  # 日期与文件数量 '20220104': 3
 
 
 # 每个插件都必须继承 model.py 里的 Recipe
@@ -44,7 +61,7 @@ class IBMUpload(Recipe):
 [[tasks]]
 recipe = "ibm-upload"  # 上传文件到 IBM COS
 names = [              # 每次只能上传一个文件
-    'file.tar.gz'
+    'file.tar.gz'      # 如果需要上传多个文件建议先打包
 ]
 
 [tasks.options]
@@ -116,21 +133,34 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
 
         return ""
 
-    def dry_run(self) -> ErrMsg:
+    def dry_run(self, really_run: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
         print(f"Upload file: {self.filename}")
         print(f"as name: {self.item_name} in IBM COS")
         print(f"file size: {Path(self.filename).lstat().st_size/MB:.4f} MB\n")
-        print("本插件涉及第三方服务，因此无法继续预测执行结果。")
+        if not really_run:
+            print("本插件涉及第三方服务，因此无法继续预测执行结果。")
         return ""
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
+        self.dry_run(really_run=True)
         cfg_ibm = get_config()
         cos = get_ibm_resource(cfg_ibm)
+        bucket_name = cfg_ibm["bucket_name"]
         upload(
-            cos, cfg_ibm["bucket_name"], self.item_name, self.size_limit, self.filename
+            cos, bucket_name, self.item_name, self.size_limit, self.filename
         )
+
+        # 更新计数器
+        print(f"Update files counter...")
+        summary = get_files_summary(cos, bucket_name, files_summary_name)
+        today = self.item_name[:8]
+        n = summary["date_count"].get(today, 0)
+        summary["date_count"][today] = n + 1
+        summary_json = json.dumps(summary)
+        put_text_file(cos, bucket_name, files_summary_name, summary_json)
+        print("OK.")
         return ""
 
 
@@ -156,8 +186,6 @@ def get_ibm_resource(cfg_ibm: dict):
 # https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-multipart
 def upload(cos, bucket_name: str, item_name: str, size_limit: int, file_path: str):
     try:
-        print(f"Starting transfer {item_name} to IBM COS\n")
-
         # set the transfer threshold and chunk size
         transfer_config = ibm_boto3.s3.transfer.TransferConfig(
             multipart_threshold=size_limit, multipart_chunksize=part_size
@@ -170,8 +198,44 @@ def upload(cos, bucket_name: str, item_name: str, size_limit: int, file_path: st
                 Fileobj=file_data, Config=transfer_config
             )
 
-        print("Transfer Complete!\n")
+        print("Transfer complete.")
     except ClientError as be:
         print("CLIENT ERROR: {0}\n".format(be))
     except Exception as e:
         print("Unable to complete multi-part upload: {0}".format(e))
+
+
+# https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-get-file-contents
+def get_item(cos, bucket_name: str, item_name: str):
+    try:
+        return cos.Object(bucket_name, item_name).get()
+    except ClientError as be:
+        print("CLIENT ERROR: {0}\n".format(be))
+    except Exception as e:
+        print("Unable to retrieve file contents: {0}".format(e))
+
+
+# https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-get-file-contents
+def get_files_summary(cos, bucket_name: str, item_name: str) -> FilesSummary:
+    try:
+        f = cos.Object(bucket_name, item_name).get()
+        summary = json.loads(f["Body"].read())
+        return FilesSummary(date_count=summary.get("date_count", {}))
+    except ClientError as be:
+        if be.__str__().find('NoSuchKey') < 0:
+            raise
+    except Exception as e:
+        print("Unable to retrieve file contents: {0}".format(e))
+    return FilesSummary(date_count={})
+
+
+# https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-new-file
+def put_text_file(cos, bucket_name:str, item_name:str, file_text:str):
+    try:
+        cos.Object(bucket_name, item_name).put(
+            Body=file_text
+        )
+    except ClientError as be:
+        print("CLIENT ERROR: {0}\n".format(be))
+    except Exception as e:
+        print("Unable to create text file: {0}".format(e))

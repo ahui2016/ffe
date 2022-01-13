@@ -16,6 +16,7 @@ __input_files_max__ = 99
 MB = 1024 * 1024
 """用于方便计算文件体积"""
 
+
 class Recipe(ABC):
     @property
     @abstractmethod
