@@ -2,11 +2,12 @@
 dependencies = ["ibm-cos-sdk"]
 
 IBM COS 的优点：
-1.有免费套餐  2.不需要登记信用卡  3.国内可直接访问
+1.有免费套餐  2.不需要登记信用卡  3.国内可直接访问  4.有Smart Tier
 
 缺点：免费用户 30 天不活动，数据有可能被删除。
 
 https://github.com/ahui2016/ffe/raw/main/recipes/ibm-upload.py
+version: 2022-01-14
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -34,7 +35,7 @@ from ffe.model import (
     names_limit,
     MB,
 )
-from ffe.util import app_config_file
+from ffe.util import app_config_file, get_proxies
 
 # set 5 MB chunks
 part_size = 5 * MB
@@ -75,6 +76,7 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
 # - pip install ibm-cos-sdk
 # - 收集必要参数 https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-prereqs
 # - 把相关信息填写到 ffe-config.toml (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
+# version: 2022-01-14
 """
 
     @property  # 必须设为 @property
@@ -137,7 +139,7 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
         print(f"Upload file: {self.filename}")
         print(f"as name: {self.item_name} in IBM COS")
-        print(f"file size: {Path(self.filename).lstat().st_size/MB:.4f} MB\n")
+        print(f"file size: {Path(self.filename).lstat().st_size/MB:.4f} MB")
         if not really_run:
             print("本插件涉及第三方服务，因此无法继续预测执行结果。")
         return ""
@@ -145,12 +147,11 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
         self.dry_run(really_run=True)
+
         cfg_ibm = get_config()
-        cos = get_ibm_resource(cfg_ibm)
+        cos = get_ibm_resource(cfg_ibm, get_proxies())
         bucket_name = cfg_ibm["bucket_name"]
-        upload(
-            cos, bucket_name, self.item_name, self.size_limit, self.filename
-        )
+        upload(cos, bucket_name, self.item_name, self.size_limit, self.filename)
 
         # 更新计数器
         print(f"Update files counter...")
@@ -173,12 +174,12 @@ def get_config() -> dict:
         return config["ibm"]
 
 
-def get_ibm_resource(cfg_ibm: dict):
+def get_ibm_resource(cfg_ibm: dict, proxies: dict | None):
     return ibm_boto3.resource(
         "s3",
         ibm_api_key_id=cfg_ibm["ibm_api_key_id"],
         ibm_service_instance_id=cfg_ibm["ibm_service_instance_id"],
-        config=Config(signature_version="oauth"),
+        config=Config(signature_version="oauth", proxies=proxies),
         endpoint_url=cfg_ibm["endpoint_url"],
     )
 
@@ -222,7 +223,7 @@ def get_files_summary(cos, bucket_name: str, item_name: str) -> FilesSummary:
         summary = json.loads(f["Body"].read())
         return FilesSummary(date_count=summary.get("date_count", {}))
     except ClientError as be:
-        if be.__str__().find('NoSuchKey') < 0:
+        if be.__str__().find("NoSuchKey") < 0:
             raise
     except Exception as e:
         print("Unable to retrieve file contents: {0}".format(e))
@@ -230,11 +231,9 @@ def get_files_summary(cos, bucket_name: str, item_name: str) -> FilesSummary:
 
 
 # https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-new-file
-def put_text_file(cos, bucket_name:str, item_name:str, file_text:str):
+def put_text_file(cos, bucket_name: str, item_name: str, file_text: str):
     try:
-        cos.Object(bucket_name, item_name).put(
-            Body=file_text
-        )
+        cos.Object(bucket_name, item_name).put(Body=file_text)
     except ClientError as be:
         print("CLIENT ERROR: {0}\n".format(be))
     except Exception as e:

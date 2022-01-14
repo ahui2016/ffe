@@ -7,7 +7,7 @@ AnonFiles 的优点：
 1.免费 2.容量大 3.保存时间长 4.国内可直接访问 5.有API 6.匿名
 
 https://github.com/ahui2016/ffe/raw/main/recipes/anon.py
-# version: 2022-01-11
+version: 2022-01-11
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
