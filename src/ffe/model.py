@@ -23,9 +23,8 @@ class Recipe(ABC):
     def name(self) -> str:
         """Get the name of this recipe.
 
-        注意，应返回一个便于命令行输入的名称，比如中间不要有空格。
-        名称稍长一点也没关系，因为 ffe 的主要使用场景是配合 toml 文件使用，
-        不需要太频繁输入插件名称。
+        应返回一个便于命令行输入的名称，比如中间不要有空格。
+        注意：文件名以 'common_' 开头的文件会被忽略，不视为插件。
         """
         pass
 
@@ -136,7 +135,10 @@ def register(recipe: Type[Recipe]):
 
 
 def init_recipes(folder: str) -> None:
-    """注册 folder 里的全部插件。"""
+    """注册 folder 里的全部插件。
+    
+    注意：文件名以 'common_' 开头的文件会被加载，但不注册为插件。
+    """
     recipes_files = Path(folder).glob("*.py")
     for file_path in recipes_files:
         module_name = file_path.stem
@@ -148,6 +150,11 @@ def init_recipes(folder: str) -> None:
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
+
+        if file_path.name.startswith('common_'):
+            # 以 'common_' 开头的文件会被加载，但不注册为插件。
+            continue
+
         register(module.__recipe__)
 
 
