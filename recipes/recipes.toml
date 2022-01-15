@@ -13,7 +13,9 @@ recipes = [
    'https://github.com/ahui2016/ffe/raw/main/recipes/anon.py',
    'https://github.com/ahui2016/ffe/raw/main/recipes/mimi.py',
    'https://github.com/ahui2016/ffe/raw/main/recipes/tar-xz.py',
+   'https://github.com/ahui2016/ffe/raw/main/recipes/common_ibm.py',
    'https://github.com/ahui2016/ffe/raw/main/recipes/ibm-upload.py',
+   'https://github.com/ahui2016/ffe/raw/main/recipes/ibm-delete.py',
    'https://github.com/ahui2016/ffe/raw/main/recipes/rename-part.py',
    'https://github.com/ahui2016/ffe/raw/main/recipes/move-new-files.py',
 ]

@@ -48,6 +48,16 @@ def get_ibm_resource(cfg_ibm: dict, proxies: dict | None):
     )
 
 
+def get_ibm_client(cfg_ibm: dict, proxies: dict | None):
+    return ibm_boto3.client(
+        "s3",
+        ibm_api_key_id=cfg_ibm["ibm_api_key_id"],
+        ibm_service_instance_id=cfg_ibm["ibm_service_instance_id"],
+        config=Config(signature_version="oauth", proxies=proxies),
+        endpoint_url=cfg_ibm["endpoint_url"],
+    )
+
+
 # https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-multipart
 def upload(cos, bucket_name: str, item_name: str, size_limit: int, file_path: str):
     try:
@@ -81,9 +91,9 @@ def get_item(cos, bucket_name: str, item_name: str):
 
 
 # https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-get-file-contents
-def get_files_summary(cos, bucket_name: str, item_name: str) -> FilesSummary:
+def get_files_summary(cos, bucket_name: str) -> FilesSummary:
     try:
-        f = cos.Object(bucket_name, item_name).get()
+        f = cos.Object(bucket_name, files_summary_name).get()
         summary = json.loads(f["Body"].read())
         return FilesSummary(date_count=summary.get("date_count", {}))
     except ClientError as be:
@@ -102,3 +112,33 @@ def put_text_file(cos, bucket_name: str, item_name: str, file_text: str):
         print("CLIENT ERROR: {0}\n".format(be))
     except Exception as e:
         print("Unable to create text file: {0}".format(e))
+
+
+# https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-list-objects
+def get_by_prefix(cos, bucket_name: str, prefix: str) -> list:
+    try:
+        return cos.Bucket(bucket_name).objects.filter(Prefix=prefix)
+    except ClientError as be:
+        print("CLIENT ERROR: {0}\n".format(be))
+    except Exception as e:
+        print("Unable to retrieve bucket contents: {0}".format(e))
+    return []
+
+
+# https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-delete-multiple-objects
+def delete_items(cos_client, bucket_name: str, objects: list[dict]) -> list:
+    try:
+        delete_request = {"Objects": objects}
+        response = cos_client.delete_objects(Bucket=bucket_name, Delete=delete_request)
+        errors = response.get("Errors", [])
+        if errors:
+            print("Errors:")
+            for item in errors:
+                print(f"({item['Code']}) {item['Key']} ({item['Message']})")
+
+        return response.get("Deleted", [])
+    except ClientError as be:
+        print("CLIENT ERROR: {0}\n".format(be))
+    except Exception as e:
+        print("Unable to copy item: {0}".format(e))
+    return []

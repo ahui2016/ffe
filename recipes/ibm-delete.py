@@ -1,5 +1,5 @@
 """ibm-delete: 删除 IBM COS 中的文件
-dependencies = ["arrow", "ibm-cos-sdk"] (另外还依赖 recipes/common_ibm.py)
+dependencies = ["arrow", "humanfriendly", "ibm-cos-sdk"] (另外还依赖 recipes/common_ibm.py)
 
 本插件用于删除原本由 ibm-upload 上传到 IBM COS 中的文件。
 
@@ -9,7 +9,9 @@ https://github.com/ahui2016/ffe/raw/main/recipes/ibm-delete.py
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
 
+import json
 import arrow
+from humanfriendly import format_size
 from ffe.model import (
     Recipe,
     ErrMsg,
@@ -18,10 +20,14 @@ from ffe.model import (
 from ffe.util import get_proxies
 from common_ibm import (
     FilesSummary,
+    delete_items,
     files_summary_name,
+    get_by_prefix,
     get_config,
     get_files_summary,
+    get_ibm_client,
     get_ibm_resource,
+    put_text_file,
 )
 
 # 每个插件都必须继承 model.py 里的 Recipe
@@ -75,7 +81,7 @@ names = []             # 只有当多个任务组合时才使用此项代替命�
 
         return ""
 
-    def dry_run(self) -> ErrMsg:
+    def dry_run(self, really_run: bool = False) -> ErrMsg:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         cfg_ibm = get_config()
@@ -85,19 +91,51 @@ names = []             # 只有当多个任务组合时才使用此项代替命�
         # 如未指定前缀，则打印 files-summary
         if not self.prefix:
             print("Retrieving files summary...")
-            summary: FilesSummary = get_files_summary(
-                cos, bucket_name, files_summary_name
-            )
+            summary: FilesSummary = get_files_summary(cos, bucket_name)
             total = 0
             for date, n in summary["date_count"].items():
                 print(f"{arrow.get(date).format('YYYY-MM-DD')}  {n}")
                 total += n
             print(f"\nTotal: {total} files")
             return ""
+
+        objects = []
+        for item in get_by_prefix(cos, bucket_name, self.prefix):
+            objects.append(dict(Key=item.key))
+            if not really_run:
+                print(f"({format_size(item.size)}) {item.key}")
+
+        if not objects:
+            print(f"There's no item starts with '{self.prefix}'.")
+            if self.prefix.find("-") >= 0:
+                print(f"前缀通常是一个日期，没有短横线，例如: '20220101'.")
+        else:
+            if really_run:
+                cos_client = get_ibm_client(cfg_ibm, get_proxies())
+                deleted = delete_items(cos_client, bucket_name, objects)
+                for item in deleted:
+                    print(f"Delete {item['Key']}")
+                if deleted:
+                    print(f"Update files counter...")
+                    summary = get_files_summary(cos, bucket_name)
+                    n = summary["date_count"].get(self.prefix, 0)
+                    n -= len(deleted)
+                    if n <= 0:
+                        # 如果一个日期没有文件了，就删除它。
+                        del summary["date_count"][self.prefix]
+                    else:
+                        summary["date_count"][self.prefix] = n
+                    summary_json = json.dumps(summary)
+                    put_text_file(cos, bucket_name, files_summary_name, summary_json)
+                    print("OK.")
+            else:
+                print(f"\nItems as above will be deleted.")
+
         return ""
 
     def exec(self) -> ErrMsg:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
+        self.dry_run(really_run=True)
         return ""
 
 

@@ -136,7 +136,7 @@ def register(recipe: Type[Recipe]):
 
 def init_recipes(folder: str) -> None:
     """注册 folder 里的全部插件。
-    
+
     注意：文件名以 'common_' 开头的文件会被加载，但不注册为插件。
     """
     recipes_files = Path(folder).glob("*.py")
@@ -151,7 +151,7 @@ def init_recipes(folder: str) -> None:
         sys.modules[module_name] = module
         spec.loader.exec_module(module)
 
-        if file_path.name.startswith('common_'):
+        if file_path.name.startswith("common_"):
             # 以 'common_' 开头的文件会被加载，但不注册为插件。
             continue
 

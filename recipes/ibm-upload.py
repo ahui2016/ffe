@@ -143,7 +143,7 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
 
         # 更新计数器
         print(f"Update files counter...")
-        summary = get_files_summary(cos, bucket_name, files_summary_name)
+        summary = get_files_summary(cos, bucket_name)
         today = self.item_name[:8]
         n = summary["date_count"].get(today, 0)
         summary["date_count"][today] = n + 1
