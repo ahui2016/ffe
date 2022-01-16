@@ -57,6 +57,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
         return dict(
             output="",
             auto_wrap=True,
+            zip_overwrite=False,
             names=[],
         )
 

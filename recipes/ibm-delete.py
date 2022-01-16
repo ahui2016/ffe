@@ -49,6 +49,7 @@ names = [              # 文件的前缀，每次最多只可填写 1 个前缀
 names = []             # 只有当多个任务组合时才使用此项代替命令行输入
 
 # 本插件与 ibm-upload 搭配使用，用于删除由 ibm-upload 上传的文件。
+# 使用本插件前必须正确设置 ibm-upload, 具体方法请使用命令 'ffe info -r ibm-upload' 查看。
 """
 
     @property  # 必须设为 @property

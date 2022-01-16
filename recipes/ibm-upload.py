@@ -61,7 +61,6 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
 # 使用本插件需要 IBM Cloud 账号：
 # - 注册一个 cloud.ibm.com 账号
 # - 启用 IBM Cloud Object Storage 并且创建一个 bucket https://cloud.ibm.com/objectstorage/create
-# - pip install ibm-cos-sdk
 # - 收集必要参数 https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-prereqs
 # - 把相关信息填写到 ffe-config.toml (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
 # version: 2022-01-14

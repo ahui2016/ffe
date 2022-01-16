@@ -1,0 +1,6 @@
+recipes = [
+   'https://gitee.com/ipelago/ffe/raw/main/recipes/anon.py',
+   'https://gitee.com/ipelago/ffe/raw/main/recipes/common_ibm.py',
+   'https://gitee.com/ipelago/ffe/raw/main/recipes/ibm-upload.py',
+   'https://gitee.com/ipelago/ffe/raw/main/recipes/ibm-delete.py',
+]
