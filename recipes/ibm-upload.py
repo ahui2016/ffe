@@ -2,7 +2,7 @@
 dependencies = ["arrow", "ibm-cos-sdk"] (另外还依赖 recipes/common_ibm.py)
 
 IBM COS 的优点：
-1.有免费套餐  2.不需要登记信用卡  3.国内可直接访问  4.有Smart Tier
+1.有免费套餐  2.国内可直接访问  3.有Smart Tier  4. 有 API (并且有多种语言的 SDK)
 
 缺点：免费用户 30 天不活动，数据有可能被删除。
 
