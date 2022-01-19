@@ -1,5 +1,5 @@
 """ibm-upload: 上传文件到 IBM COS
-dependencies = ["arrow", "ibm-cos-sdk"] (另外还依赖 recipes/common_ibm.py)
+dependencies = ["arrow", "humanfriendly", "ibm-cos-sdk"] (另外还依赖 recipes/common_ibm.py)
 
 IBM COS 的优点：
 1.有免费套餐  2.国内可直接访问  3.有Smart Tier  4. 有 API (并且有多种语言的 SDK)
@@ -15,6 +15,7 @@ version: 2022-01-14
 
 import arrow
 import json
+from humanfriendly import format_size
 from pathlib import Path
 from ffe.model import (
     Recipe,
@@ -126,7 +127,8 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
         print(f"Upload file: {self.filename}")
         print(f"as name: {self.item_name} in IBM COS")
-        print(f"file size: {Path(self.filename).lstat().st_size/MB:.4f} MB")
+        st_size = Path(self.filename).lstat().st_size
+        print(f"file size: {format_size(st_size)}")
         if not really_run:
             print("本插件涉及第三方服务，因此无法继续预测执行结果。")
         return ""

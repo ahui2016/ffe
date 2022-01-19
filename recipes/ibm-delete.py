@@ -129,8 +129,6 @@ names = []             # 只有当多个任务组合时才使用此项代替命�
                     summary_json = json.dumps(summary)
                     put_text_file(cos, bucket_name, files_summary_name, summary_json)
                     print("OK.")
-            else:
-                print(f"\nItems as above will be deleted.")
 
         return ""
 
