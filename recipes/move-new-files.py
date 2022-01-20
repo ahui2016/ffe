@@ -22,6 +22,7 @@ from pathlib import Path
 from ffe.model import (
     Recipe,
     ErrMsg,
+    Result,
     must_exist,
     get_bool,
     must_folders,
@@ -51,7 +52,7 @@ suffix = ".jpg"    # 指定文件名的末尾，空字符串表示不限
 prefix = ""        # 指定文件名的开头，空字符串表示不限
 overwrite = false  # 是否覆盖同名文件
 copy_only = false  # 设为 true 则只是复制，不删除源头文件
-names = []         # 只有当多个任务组合时才使用此项代替命令行输入
+use_pipe = true    # 是否接受上一个任务的结果
 
 # 注意：本插件在设计上并未对移动大量文件的场景进行优化，建议只用来移动少量文件。
 # version: 2022-01-13
@@ -60,7 +61,12 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
     @property  # 注意: 必须设为 @property
     def default_options(self) -> dict:
         return dict(
-            n=1, suffix="", prefix="", overwrite=False, copy_only=False, names=[]
+            n=1,
+            suffix="",
+            prefix="",
+            overwrite=False,
+            copy_only=False,
+            use_pipe=False,
         )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
@@ -76,11 +82,6 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
         """
         # 要在 dry_run, exec 中确认 is_validated
         self.is_validated = True
-
-        # 优先采用 options 里的 names, 方便多个任务组合。
-        options_names = options.get("names", [])
-        if options_names:
-            names = options_names
 
         names, err = names_limit(names, 2, 2)
         if err:
@@ -105,7 +106,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
         self.copy_only = options.get("copy_only", False)
         return err
 
-    def dry_run(self, really_run: bool = False) -> ErrMsg:
+    def dry_run(self, really_run: bool = False) -> Result:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         src_files, files_size, free_space = self.get_new_files()
@@ -118,14 +119,14 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
             f"files size: {format_size(files_size)}, free space: {format_size(free_space)}"
         )
         if free_space <= files_size:
-            return f"Not enough space in {self.target_dir}"
+            return [], f"Not enough space in {self.target_dir}"
 
         print_and_move(
             Path(self.target_dir), src_files, self.overwrite, self.copy_only, really_run
         )
-        return ""
+        return [self.target_dir], ""
 
-    def exec(self) -> ErrMsg:
+    def exec(self) -> Result:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
         return self.dry_run(really_run=True)
 
@@ -159,6 +160,7 @@ def print_and_move(
     copy_only: bool,
     really_run: bool = False,
 ) -> None:
+
     for src in src_files:
         dst = dst_folder.joinpath(src.name)
         dst_exists = dst.exists()

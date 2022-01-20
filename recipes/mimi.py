@@ -15,7 +15,15 @@ https://github.com/ahui2016/ffe/raw/main/recipes/mimi.py
 from cryptography.fernet import Fernet
 from pathlib import Path
 from enum import Enum, auto
-from ffe.model import Recipe, ErrMsg, get_bool, must_exist, must_files, names_limit
+from ffe.model import (
+    Recipe,
+    ErrMsg,
+    Result,
+    get_bool,
+    must_exist,
+    must_files,
+    names_limit,
+)
 
 
 len_of_key = 43
@@ -46,9 +54,7 @@ names = [           # 每次只能处理一个文件
 [tasks.options]
 suffix = ".mimi"   # 已加密文件的后缀名(如果省略，则默认为 '.mimi')
 overwrite = false  # 如果文件名已存在，是否允许覆盖文件
-names = [          # 只有当多个任务组合时才使用此项代替命令行输入
-  'file.txt'
-]
+use_pipe = true    # 是否接受上一个任务的结果
 
 # 本插件加密时把随机生成的 key 混在加密后的数据里，因此加密、解密都不需要输入密码，
 # 但只适用于保密要求不高的情况，比如发送文件给同事、朋友，或暂时保存文件到网盘等，
@@ -61,7 +67,7 @@ names = [          # 只有当多个任务组合时才使用此项代替命令�
         return dict(
             suffix=default_suffix,
             overwrite=False,
-            names=[],
+            use_pipe=False,
         )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
@@ -123,20 +129,23 @@ names = [          # 只有当多个任务组合时才使用此项代替命令�
                     return f"Already Exists: {self.plain_file}"
         return ""
 
-    def dry_run(self) -> ErrMsg:
+    def dry_run(self) -> Result:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         if self.overwrite:
             print("overwrite: True")
 
+        result: list[str] = []
         match self.method:
             case Method.Encrypt:
                 print(f"'{self.plain_file}' is encrypted to '{self.cipher_file}'")
+                result.append(self.cipher_file.name)
             case Method.Decrypt:
                 print(f"'{self.cipher_file}' is decrypted to '{self.plain_file}'")
-        return ""
+                result.append(self.plain_file.name)
+        return result, ""
 
-    def exec(self) -> ErrMsg:
+    def exec(self) -> Result:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
         match self.method:
             case Method.Encrypt:

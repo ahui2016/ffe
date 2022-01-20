@@ -402,9 +402,19 @@ def run(ctx, in_file, recipe_name, is_dry, names):
     if is_dry:
         click.echo("\n** It's a dry run, not a real run. **")
 
+    # 用来把上一个任务的执行结果传递到下一个任务。
+    pipe_names = []
+
     for task in plan["tasks"]:
         r: Recipe = __recipes__[task["recipe"]]()
         click.echo(f"\nrecipe: {r.name}")
+
+        # 默认使用 pipe_names, 但同时还需要 pipe_names 有内容才会被使用。
+        if task["options"].get("use_pipe", False) and pipe_names:
+            task["names"] = pipe_names
+
+        # 避免“隔代遗传”
+        pipe_names = []
 
         err = r.validate(task["names"], task["options"])
         if err:
@@ -414,9 +424,11 @@ def run(ctx, in_file, recipe_name, is_dry, names):
             ctx.exit()
 
         if is_dry:
-            check(ctx, r.dry_run())
+            pipe_names, err = r.dry_run()
+            check(ctx, err)
         else:
-            check(ctx, r.exec())
+            pipe_names, err = r.exec()
+            check(ctx, err)
 
     if is_dry:
         click.echo("\nThe dry run has been completed.\n")

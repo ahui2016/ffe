@@ -10,6 +10,9 @@ from abc import ABC, abstractmethod
 ErrMsg = str
 """一个描述错误内容的简单字符串，空字符串表示无错误。"""
 
+Result = tuple[list[str], ErrMsg]
+"""Result 由两元素组成。当多个任务组合使用时，第一个元素可以作为 names 被下一个任务接收。"""
+
 __input_files_max__ = 99
 """默认文件/文件夹数量上限(不是实际处理数量，而是输入参数个数)"""
 
@@ -56,7 +59,7 @@ class Recipe(ABC):
         return ""
 
     @abstractmethod
-    def dry_run(self) -> ErrMsg:
+    def dry_run(self) -> Result:
         """在不修改文件的前提下尝试运行，尽可能多收集信息预测真实运行的结果。
 
         比如，检查文件是否存在、将被修改的文件名等等。注意，与 validate 方法一样，
@@ -64,13 +67,13 @@ class Recipe(ABC):
         """
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
         print(f"There's no dry_run for {self.name}.")
-        return ""
+        return [], ""
 
     @abstractmethod
-    def exec(self) -> ErrMsg:
+    def exec(self) -> Result:
         """只有这个方法才真正操作文件，其它方法一律不可操作文件。"""
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
-        return ""
+        return [], ""
 
 
 class Task(TypedDict):

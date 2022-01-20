@@ -15,6 +15,7 @@ from humanfriendly import format_size
 from ffe.model import (
     Recipe,
     ErrMsg,
+    Result,
     names_limit,
 )
 from ffe.util import get_proxies
@@ -46,7 +47,7 @@ names = [              # 文件的前缀，每次最多只可填写 1 个前缀
 ]                      # 如果 names 为空，则打印文件数量统计结果
 
 [tasks.options]
-names = []             # 只有当多个任务组合时才使用此项代替命令行输入
+use_pipe = true  # 是否接受上一个任务的结果
 
 # 本插件与 ibm-upload 搭配使用，用于删除由 ibm-upload 上传的文件。
 # 使用本插件前必须正确设置 ibm-upload, 具体方法请使用命令 'ffe info -r ibm-upload' 查看。
@@ -55,7 +56,7 @@ names = []             # 只有当多个任务组合时才使用此项代替命�
     @property  # 必须设为 @property
     def default_options(self) -> dict:
         return dict(
-            names=[],
+            use_pipe=False,
         )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
@@ -82,7 +83,7 @@ names = []             # 只有当多个任务组合时才使用此项代替命�
 
         return ""
 
-    def dry_run(self, really_run: bool = False) -> ErrMsg:
+    def dry_run(self, really_run: bool = False) -> Result:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
 
         cfg_ibm = get_config()
@@ -98,7 +99,7 @@ names = []             # 只有当多个任务组合时才使用此项代替命�
                 print(f"{arrow.get(date).format('YYYY-MM-DD')}  {n}")
                 total += n
             print(f"\nTotal: {total} files")
-            return ""
+            return [], ""
 
         objects = []
         for item in get_by_prefix(cos, bucket_name, self.prefix):
@@ -130,12 +131,11 @@ names = []             # 只有当多个任务组合时才使用此项代替命�
                     put_text_file(cos, bucket_name, files_summary_name, summary_json)
                     print("OK.")
 
-        return ""
+        return [], ""
 
-    def exec(self) -> ErrMsg:
+    def exec(self) -> Result:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
-        self.dry_run(really_run=True)
-        return ""
+        return self.dry_run(really_run=True)
 
 
 __recipe__ = IBMDelete

@@ -12,7 +12,7 @@ version: 2022-01-13
 import tarfile
 from pathlib import Path
 from enum import Enum, auto
-from ffe.model import Recipe, ErrMsg, must_exist, names_limit
+from ffe.model import Recipe, ErrMsg, Result, must_exist, names_limit
 
 
 suffix = ".tar.xz"
@@ -43,8 +43,8 @@ names = [          # 如果提供 1 个文件，并且后缀是 '.tar.xz',
 output = ""        # 指定压缩后的文件名或解压缩时的目标文件夹，
                    # 如果留空，本插件会为你自动设置。
 auto_wrap = true   # 解压缩出来不止一个文件时，用一个文件夹包裹它们
+use_pipe = true    # 是否接受上一个任务的结果
 zip_overwrite = false  # 压缩后的文件是否覆盖同名文件
-names = []         # 只有当多个任务组合时才使用此项代替命令行输入
 
 使用打包压缩功能时，需要先进入一个文件夹，用相对路径选择需要打包的文件/文件夹。
 采用 lzma 压缩方法，打包压缩后的后缀名是 '.tar.xz'
@@ -58,7 +58,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
             output="",
             auto_wrap=True,
             zip_overwrite=False,
-            names=[],
+            use_pipe=False,
         )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
@@ -71,11 +71,6 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
         """
         # 要在 dry_run, exec 中确认 is_validated
         self.is_validated = True
-
-        # 优先采用 options 里的 names, 方便多个任务组合。
-        options_names = options.get("names", [])
-        if options_names:
-            names = options_names
 
         names, err = names_limit(names, 1)
         if err:
@@ -126,7 +121,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
 
         return ""
 
-    def dry_run(self) -> ErrMsg:
+    def dry_run(self) -> Result:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
         print(f"Mode: {self.mode.name}")
         match self.mode:
@@ -134,26 +129,26 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
                 with tarfile.open(self.names[0]) as tar:
                     for name in tar.getnames():
                         if Path(name).is_absolute():
-                            return "压缩包内含有绝对路径的文件名，请使用专业工具处理。"
+                            return [], "压缩包内含有绝对路径的文件名，请使用专业工具处理。"
                         if name.startswith(".."):
-                            return f"{name} 可能会解压缩到父目录，请使用专业工具处理。"
+                            return [], f"{name} 可能会解压缩到父目录，请使用专业工具处理。"
                         f = self.output.joinpath(name).resolve()
                         if f.exists():
-                            return f"Already Exists: '{f}'"
+                            return [], f"Already Exists: '{f}'"
                         print(f)
             case Mode.Zip:
                 if self.output.exists() and not self.zip_overwrite:
-                    return f"File exists: '{self.output}'"
+                    return [], f"File exists: '{self.output}'"
                 if self.zip_overwrite:
                     print(f"Overwrite: {self.zip_overwrite}")
                 print(f"Create '{self.output}'")
-        return ""
+        return [self.output.name], ""
 
-    def exec(self) -> ErrMsg:
+    def exec(self) -> Result:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
-        err = self.dry_run()
+        _, err = self.dry_run()
         if err:
-            return err
+            return [], err
         match self.mode:
             case Mode.Unzip:
                 with tarfile.open(self.names[0]) as tar:
@@ -162,7 +157,7 @@ names = []         # 只有当多个任务组合时才使用此项代替命令�
                 with tarfile.open(self.output, "w:xz") as tar:
                     for name in self.names:
                         tar.add(name)
-        return ""
+        return [self.output.name], ""
 
 
 __recipe__ = TarXZ

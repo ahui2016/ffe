@@ -15,7 +15,15 @@ version: 2022-01-11
 import tomli
 import requests
 import pyperclip
-from ffe.model import Recipe, ErrMsg, must_exist, get_bool, must_files, names_limit
+from ffe.model import (
+    Recipe,
+    ErrMsg,
+    Result,
+    must_exist,
+    get_bool,
+    must_files,
+    names_limit,
+)
 from ffe.util import app_config_file, get_proxies
 
 
@@ -37,7 +45,7 @@ names = [        # 每次只能上传一个文件
 [tasks.options]
 auto_copy = true  # 是否自动复制结果到剪贴板
 key = ""          # AnonFiles 账号的 key
-names = []  # 只有当多个任务组合时才使用此项代替命令行输入
+use_pipe = true   # 是否接受上一个任务的结果
 
 # 每次只能上传 1 个文件，如果需要一次性上传多个文件，建议先压缩打包。
 # 不设置 key 也可使用，如果注册了 AnonFiles 并且设置了 key, 可登入 AnonFiles 的账号查看已上传文件的列表。
@@ -51,7 +59,7 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
         return dict(
             auto_copy=True,
             key="",
-            names=[],
+            use_pipe=False,
         )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
@@ -87,13 +95,13 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
             return err
         return must_files(names)
 
-    def dry_run(self) -> ErrMsg:
+    def dry_run(self) -> Result:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
         print("There is no dry run for this recipe.")
         print("本插件涉及第三方服务，因此无法提供 dry run.")
-        return ""
+        return [], ""
 
-    def exec(self) -> ErrMsg:
+    def exec(self) -> Result:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
         url = "https://api.anonfiles.com/upload"
         if self.key:
@@ -112,7 +120,7 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
         if self.auto_copy:
             print("Auto copy to clipboard: True")
             pyperclip.copy(file_url)
-        return ""
+        return [], ""
 
 
 __recipe__ = Anon

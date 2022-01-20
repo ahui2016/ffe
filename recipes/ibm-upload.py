@@ -20,6 +20,7 @@ from pathlib import Path
 from ffe.model import (
     Recipe,
     ErrMsg,
+    Result,
     filesize_limit,
     get_bool,
     must_exist,
@@ -57,7 +58,7 @@ names = [              # 每次只能上传一个文件
 [tasks.options]
 add_prefix = true  # 是否自动添加前缀
 size_limit = 0     # 单位:MB, 设为 0 则采用默认上限
-names = []  # 只有当多个任务组合时才使用此项代替命令行输入
+use_pipe = true    # 是否接受上一个任务的结果
 
 # 使用本插件需要 IBM Cloud 账号：
 # - 注册一个 cloud.ibm.com 账号
@@ -72,7 +73,7 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
         return dict(
             add_prefix=True,
             size_limit=0,
-            names=[],
+            use_pipe=False,
         )
 
     def validate(self, names: list[str], options: dict) -> ErrMsg:
@@ -123,7 +124,7 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
 
         return ""
 
-    def dry_run(self, really_run: bool = False) -> ErrMsg:
+    def dry_run(self, really_run: bool = False) -> Result:
         assert self.is_validated, "在执行 dry_run 之前必须先执行 validate"
         print(f"Upload file: {self.filename}")
         print(f"as name: {self.item_name} in IBM COS")
@@ -131,9 +132,9 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
         print(f"file size: {format_size(st_size)}")
         if not really_run:
             print("本插件涉及第三方服务，因此无法继续预测执行结果。")
-        return ""
+        return [self.filename], ""
 
-    def exec(self) -> ErrMsg:
+    def exec(self) -> Result:
         assert self.is_validated, "在执行 exec 之前必须先执行 validate"
         self.dry_run(really_run=True)
 
@@ -151,7 +152,7 @@ names = []  # 只有当多个任务组合时才使用此项代替命令行输入
         summary_json = json.dumps(summary)
         put_text_file(cos, bucket_name, files_summary_name, summary_json)
         print("OK.")
-        return ""
+        return [self.filename], ""
 
 
 __recipe__ = IBMUpload
