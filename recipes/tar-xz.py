@@ -4,7 +4,8 @@
 采用 lzma 压缩方法，打包压缩后的后缀名是 '.tar.xz'
 
 https://github.com/ahui2016/ffe/raw/main/recipes/tar-xz.py
-version: 2022-01-13
+version: 2022-01-20
+# ffe >= v0.1.0
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -49,7 +50,8 @@ zip_overwrite = false  # 压缩后的文件是否覆盖同名文件
 使用打包压缩功能时，需要先进入一个文件夹，用相对路径选择需要打包的文件/文件夹。
 采用 lzma 压缩方法，打包压缩后的后缀名是 '.tar.xz'
 解压缩时每次只能解压缩一个文件。
-# version: 2022-01-13
+# version: 2022-01-20
+# ffe >= v0.1.0
 """
 
     @property  # 必须设为 @property

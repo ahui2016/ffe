@@ -1,6 +1,7 @@
 from pathlib import Path
 from urllib.parse import urlparse
 from typing import Any, cast
+import os
 from ffe.model import (
     ErrMsg,
     Recipe,
@@ -283,6 +284,26 @@ def install(ctx, peek, download, install, force, url):
                 click.echo(f"install: {r_url}")
                 with open(dst, "wb") as f:
                     f.write(resp.content)
+    ctx.exit()
+
+
+@cli.command(context_settings=CONTEXT_SETTINGS)
+@click.option(
+    "recipe_name",
+    "-r",
+    "--recipe",
+    help="Specify a recipe to uninstall.",
+)
+@click.pass_context
+def uninstall(ctx, recipe_name):
+    """Remove a recipe.
+
+    Example: ffe uninstall -r swap
+    """
+    filename = recipe_name + ".py"
+    r_path = Path(__recipes_folder__).joinpath(filename)
+    os.remove(r_path)
+    click.echo(f"Uninstall OK: {r_path}")
     ctx.exit()
 
 

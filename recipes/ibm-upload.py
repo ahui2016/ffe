@@ -8,7 +8,8 @@ IBM COS 的优点：
 
 https://github.com/ahui2016/ffe/raw/main/recipes/common_ibm.py
 https://github.com/ahui2016/ffe/raw/main/recipes/ibm-upload.py
-version: 2022-01-14
+version: 2022-01-20
+# ffe >= v0.1.0
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -65,7 +66,8 @@ use_pipe = true    # 是否接受上一个任务的结果
 # - 启用 IBM Cloud Object Storage 并且创建一个 bucket https://cloud.ibm.com/objectstorage/create
 # - 收集必要参数 https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-prereqs
 # - 把相关信息填写到 ffe-config.toml (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
-# version: 2022-01-14
+# version: 2022-01-20
+# ffe >= v0.1.0
 """
 
     @property  # 必须设为 @property

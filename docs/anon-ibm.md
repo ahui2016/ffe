@@ -111,12 +111,12 @@ zip_overwrite = false
 
 [[tasks]]
 recipe = "anon"    # 第二个任务：匿名上传
-names = [
-  'files.tar.xz',
-]
+names = []         # 可以在这里指定要上传的文件，也可以选择接受上一个任务的结果
 [tasks.options]
 auto_copy = true
 key = ""
+use_pipe = true  # 设为 true 表示接受上一个任务的结果
+                 # 在该例子中，上一个任务的结果是 'files.tar.xz'
 ```
 
 然后使用命令 `ffe run -f tar-anon.toml` 即可一次性完成打包和上传。这个方法适用于一些需要经常重复操作的事情，写好 TOML 文件后就可以轻松打出一套组合拳。

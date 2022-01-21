@@ -5,6 +5,7 @@ dependencies = ["arrow", "humanfriendly", "ibm-cos-sdk"] (另外还依赖 recipe
 
 https://github.com/ahui2016/ffe/raw/main/recipes/common_ibm.py
 https://github.com/ahui2016/ffe/raw/main/recipes/ibm-delete.py
+# ffe >= v0.1.0
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -51,6 +52,7 @@ use_pipe = true  # 是否接受上一个任务的结果
 
 # 本插件与 ibm-upload 搭配使用，用于删除由 ibm-upload 上传的文件。
 # 使用本插件前必须正确设置 ibm-upload, 具体方法请使用命令 'ffe info -r ibm-upload' 查看。
+# ffe >= v0.1.0
 """
 
     @property  # 必须设为 @property

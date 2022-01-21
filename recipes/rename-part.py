@@ -4,6 +4,7 @@
 对文件名的处理可选择三种模式: replace(替换字符), head(在开头添加字符), tail(在末尾添加字符)
 
 https://github.com/ahui2016/ffe/raw/main/recipes/rename-part.py
+# ffe >= v0.1.0
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -56,6 +57,7 @@ use_pipe = true      # 是否接受上一个任务的结果
 # 1. 自动根据 old 选择文件，并且把 old 更改为 new, 如果 new 是空字符串则相当于删除 old。
 # 2. method 设为 head 或 tail 时分别表示在文件名的开头或末尾添加 new 的内容。
 # 由于本插件比较复杂，不熟悉时建议多用 'ffe run -dry' 模式预估运行结果，确认无误再真正执行。
+# ffe >= v0.1.0
 """
 
     @property  # 必须设为 @property

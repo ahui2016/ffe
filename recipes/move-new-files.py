@@ -10,7 +10,8 @@ dependencies = ["humanfriendly"]
 使用 shutil.move 来移动文件，因此会先尝试改名，改名失败再进行复制和删除操作。
 
 https://github.com/ahui2016/ffe/raw/main/recipes/move-new-files.py
-version: 2022-01-13
+version: 2022-01-20
+# ffe >= v0.1.0
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -55,7 +56,8 @@ copy_only = false  # 设为 true 则只是复制，不删除源头文件
 use_pipe = true    # 是否接受上一个任务的结果
 
 # 注意：本插件在设计上并未对移动大量文件的场景进行优化，建议只用来移动少量文件。
-# version: 2022-01-13
+# version: 2022-01-20
+# ffe >= v0.1.0
 """
 
     @property  # 注意: 必须设为 @property

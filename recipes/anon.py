@@ -7,7 +7,8 @@ AnonFiles 的优点：
 1.免费 2.容量大 3.保存时间长 4.国内可直接访问 5.有API 6.匿名
 
 https://github.com/ahui2016/ffe/raw/main/recipes/anon.py
-version: 2022-01-11
+version: 2022-01-20
+# ffe >= v0.1.0
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -51,7 +52,8 @@ use_pipe = true   # 是否接受上一个任务的结果
 # 不设置 key 也可使用，如果注册了 AnonFiles 并且设置了 key, 可登入 AnonFiles 的账号查看已上传文件的列表。
 # 也可在 ffe-config.toml 里设置 key (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
 # 你的 ffe-config.toml 文件位置可以用命令 `ffe info -cfg` 查看。
-# version: 2022-01-11
+# version: 2022-01-20
+# ffe >= v0.1.0
 """
 
     @property  # 必须设为 @property
