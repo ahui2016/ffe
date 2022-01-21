@@ -83,24 +83,15 @@ class Task(TypedDict):
 
 
 class Plan(TypedDict):
-    """一个计划可包含一个或多个任务，可与 TOML 文件互相转换。
-
-    global_names, global_options 的优先级高过 task.names, task.options,
-    具体如何体现优先级请看 check_plan 函数。
-    """
-
-    global_names: list[str]
-    global_options: dict
+    """一个计划可包含一个或多个任务，可与 TOML 文件互相转换。"""
     tasks: list[Task]
 
 
 def new_plan(obj: dict[str, Any] = None) -> Plan:
-    plan = Plan(global_names=[], global_options={}, tasks=[])
+    plan = Plan(tasks=[])
     if not obj:
         return plan
 
-    plan["global_names"] = obj.get("global_names", [])
-    plan["global_options"] = obj.get("global_options", {})
     if "tasks" in obj:
         for i, v in enumerate(obj["tasks"]):
             v = cast(dict, v)
@@ -162,33 +153,16 @@ def init_recipes(folder: str) -> None:
 
 
 def check_plan(plan: Plan) -> ErrMsg:
-    """plan 会被直接修改，返回错误消息（空字符串表示无错误）"""
-
+    """做一些简单的检查"""
     if not plan["tasks"]:  # 如果 tasks 是空列表
         return "no task"
 
-    has_global_names = False if not plan["global_names"] else True
-    has_global_options = False if not plan["global_options"] else True
-
-    for i, task in enumerate(plan["tasks"]):
+    for task in plan["tasks"]:
         recipe = task["recipe"]
         if not recipe:
             return "recipe cannot be empty"
         if recipe not in __recipes__:
             return f"not found recipe: {recipe}"
-
-        if has_global_names:
-            # task["options"]["names"] 具有最高优先级，如果有内容，则清空 task["names"]
-            if len(task["options"].get("names", [])) > 0:
-                plan["tasks"][i]["names"] = []
-            else:
-                plan["tasks"][i]["names"] = plan["global_names"]
-        if has_global_options:
-            for k, v in plan["global_options"].items():
-                plan["tasks"][i]["options"][k] = v
-
-    plan["global_names"] = []
-    plan["global_options"] = {}
     return ""
 
 

@@ -278,10 +278,10 @@ def install(ctx, peek, download, install, force, url):
             filename = Path(urlparse(r_url).path).name
             dst = Path(__recipes_folder__).joinpath(filename)
             if dst.exists() and not force:
-                click.echo(f"skip  : {r_url}")
+                click.echo(f"skip {r_url}")
             else:
                 resp = request(r_url, proxies)
-                click.echo(f"install: {r_url}")
+                click.echo(f"install {r_url}")
                 with open(dst, "wb") as f:
                     f.write(resp.content)
     ctx.exit()
@@ -339,9 +339,6 @@ def dump(ctx, in_file, recipe_name, names):
 
     if in_file:
         plan = new_plan(tomli_load(in_file))
-        if names:
-            # 用户通过命令输入的 names 可以覆盖 toml 文件里的 global_names
-            plan["global_names"] = names
     else:
         r, err = get_recipe(recipe_name)
         check(ctx, err)
@@ -404,7 +401,7 @@ def run(ctx, in_file, recipe_name, is_dry, names):
         plan = new_plan(tomli_load(in_file))
         if names:
             # 用户通过命令输入的 names 拥有最高优先级
-            plan["global_names"] = names
+            plan["tasks"][0]["names"] = names
     else:
         rcp, err = get_recipe(recipe_name)
         check(ctx, err)
