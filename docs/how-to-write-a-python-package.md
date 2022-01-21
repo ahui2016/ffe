@@ -65,3 +65,50 @@ Mypy 容易安装容易使用，但默认行为不够严格，我没去研究如
 ## 10. 开始编写程序
 
 到了正式开始编程，倒没什么特别要说的了，源代码的更新记录包含了一切细节。
+
+
+ffe 是我第一次发布到 pypi 的软件，主要用途是管理自己日常写的零散脚本。最近升级到版本 v0.1.1, 新增了 `use_pipe` 参数方便多个任务串联。
+
+使用命令 `ffe dump -r mimi` 可以获得插件 mimi 的 toml 文件：
+
+```toml
+[[tasks]]
+recipe = "mimi"
+names = []
+
+[tasks.options]
+suffix = ".mimi"
+overwrite = false
+```
+
+采用同样的方法获得别的插件的 toml 文件，然后复制黏贴到同一个文件里，例如：
+
+```toml
+[[tasks]]
+recipe = "mimi"    # 第一个任务：加密
+names = [
+  'file.txt',
+]
+
+[tasks.options]
+suffix = ".mimi"
+overwrite = false
+
+[[tasks]]
+recipe = "anon"    # 第二个任务：匿名上传
+names = []   # 第二个任务既可指定具体文件名，也可接受上一个任务的结果
+
+[tasks.options]
+auto_copy = true
+key = ""
+use_pipe = true   # 设为 true 表示接受上一个任务的结果
+```
+
+然后使用命令 `ffe run -f mimi-anon.toml` 即可依次执行任务。第一个任务加密后会生成文件 file.txt.mimi, 并把这个文件名传给第二个任务。
+
+如果想使用同一个流程来处理另一个文件，不需要任何改动，只要使用命令 `ffe run -f mimi-anon.toml file2.txt` 即可对 file2.txt 进行加密和上传。
+
+如果有一些文件需要经常加密上传，这个任务组合就很方便了。还可以把打包压缩、删除文件等任务都添加进去，这比 GUI 工具更灵活，编辑 TOML 文件也很直观。
+
+（关于我写的加密插件 mimi 的安全性在这里 https://v2ex.com/t/827768 有很充分的讨论）
+（关于匿名上传的插件的说明详见这里 https://github.com/ahui2016/ffe/blob/main/docs/anon-ibm.md ）

@@ -431,9 +431,6 @@ def run(ctx, in_file, recipe_name, is_dry, names):
         if task["options"].get("use_pipe", False) and pipe_names:
             task["names"] = pipe_names
 
-        # 避免“隔代遗传”
-        pipe_names = []
-
         err = r.validate(task["names"], task["options"])
         if err:
             click.echo(f"Error: {err}")
