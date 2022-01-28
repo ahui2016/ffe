@@ -29,7 +29,8 @@ files_summary_name = "files-summary.json"
 
 
 class FilesSummary(TypedDict):
-    date_count: dict[str, int]  # 日期与文件数量 '20220104': 3
+    date_count: dict[str, int]  # (deprecated) 日期与文件数量 '20220104': 3
+    month_count: dict[str, int]  # 日期与文件数量 '202201': 5
 
 
 def get_config() -> dict:
@@ -95,13 +96,28 @@ def get_files_summary(cos, bucket_name: str) -> FilesSummary:
     try:
         f = cos.Object(bucket_name, files_summary_name).get()
         summary = json.loads(f["Body"].read())
-        return FilesSummary(date_count=summary.get("date_count", {}))
+        return FilesSummary(
+            date_count=summary.get("date_count", {}),
+            month_count=summary.get("month_count", {})
+        )
     except ClientError as be:
         if be.__str__().find("NoSuchKey") < 0:
             raise
     except Exception as e:
         print("Unable to retrieve file contents: {0}".format(e))
-    return FilesSummary(date_count={})
+    return FilesSummary(date_count={}, month_count={})
+
+
+def upgrade(summary: FilesSummary) -> FilesSummary:
+    """旧版统计每天的文件数量，新版统计每月的文件数量"""
+    if not summary["date_count"]:
+        return summary
+    for k, v in summary["date_count"].items():
+        key = k[:6]  # 'YYYYMM'
+        value = summary["month_count"].get(key, 0)
+        summary["month_count"][key] = value + v
+    summary["date_count"] = {}
+    return summary
 
 
 # https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-examples-new-file

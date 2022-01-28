@@ -110,5 +110,5 @@ use_pipe = true   # 设为 true 表示接受上一个任务的结果
 
 如果有一些文件需要经常加密上传，这个任务组合就很方便了。还可以把打包压缩、删除文件等任务都添加进去，这比 GUI 工具更灵活，编辑 TOML 文件也很直观。
 
-（关于我写的加密插件 mimi 的安全性在这里 https://v2ex.com/t/827768 有很充分的讨论）
+（关于我写的加密插件 mimi 的安全性在这里 https://v2ex.com/t/827768 有很充分的讨论）  
 （关于匿名上传的插件的说明详见这里 https://github.com/ahui2016/ffe/blob/main/docs/anon-ibm.md ）

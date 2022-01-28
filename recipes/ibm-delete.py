@@ -5,7 +5,8 @@ dependencies = ["arrow", "humanfriendly", "ibm-cos-sdk"] (另外还依赖 recipe
 
 https://github.com/ahui2016/ffe/raw/main/recipes/common_ibm.py
 https://github.com/ahui2016/ffe/raw/main/recipes/ibm-delete.py
-# ffe >= v0.1.0
+version: 2022-01-28
+ffe >= v0.1.0
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -30,6 +31,7 @@ from common_ibm import (
     get_ibm_client,
     get_ibm_resource,
     put_text_file,
+    upgrade,
 )
 
 # 每个插件都必须继承 model.py 里的 Recipe
@@ -48,16 +50,20 @@ names = [              # 文件的前缀，每次最多只可填写 1 个前缀
 ]                      # 如果 names 为空，则打印文件数量统计结果
 
 [tasks.options]
+upgrade = false  # 从旧版本升级到 version 2022-01-28
 use_pipe = true  # 是否接受上一个任务的结果
 
 # 本插件与 ibm-upload 搭配使用，用于删除由 ibm-upload 上传的文件。
 # 使用本插件前必须正确设置 ibm-upload, 具体方法请使用命令 'ffe info -r ibm-upload' 查看。
+# 更详细的说明请看 https://github.com/ahui2016/ffe/blob/main/docs/anon-ibm.md
+# version: 2022-01-28
 # ffe >= v0.1.0
 """
 
     @property  # 必须设为 @property
     def default_options(self) -> dict:
         return dict(
+            upgrade=False,
             use_pipe=False,
         )
 
@@ -65,6 +71,7 @@ use_pipe = true  # 是否接受上一个任务的结果
         """初步检查参数（比如文件数量与是否存在），并初始化以下项目：
 
         - self.prefix
+        - self.upgrade
         """
         # 要在 dry_run, exec 中确认 is_validated
         self.is_validated = True
@@ -83,6 +90,9 @@ use_pipe = true  # 是否接受上一个任务的结果
         else:
             self.prefix = ""
 
+        # set self.upgrade
+        self.upgrade = options.get("upgrade", False)
+
         return ""
 
     def dry_run(self, really_run: bool = False) -> Result:
@@ -92,19 +102,30 @@ use_pipe = true  # 是否接受上一个任务的结果
         cos = get_ibm_resource(cfg_ibm, get_proxies())
         bucket_name = cfg_ibm["bucket_name"]
 
+        if self.upgrade:
+            print("Upgrade: True")
+            if really_run:
+                summary = get_files_summary(cos, bucket_name)
+                summary = upgrade(summary)
+                put_text_file(cos, bucket_name, files_summary_name, json.dumps(summary))
+                print("Upgrade OK.")
+            else:
+                print("(But it does not perform upgrade in a dry run.)\n")
+
         # 如未指定前缀，则打印 files-summary
         if not self.prefix:
             print("Retrieving files summary...")
             summary: FilesSummary = get_files_summary(cos, bucket_name)
             total = 0
-            for date, n in summary["date_count"].items():
-                print(f"{arrow.get(date).format('YYYY-MM-DD')}  {n}")
+            for date, n in sorted(summary["month_count"].items(), key=lambda x:x[0], reverse=True):
+                print(f"{arrow.get(date, 'YYYYMM').format('MMM, YYYY')}:  {n}")
                 total += n
             print(f"\nTotal: {total} files")
             return [], ""
 
         objects = []
-        for item in get_by_prefix(cos, bucket_name, self.prefix):
+        items = get_by_prefix(cos, bucket_name, self.prefix)
+        for item in sorted(items, key=lambda x:x.key, reverse=True):
             objects.append(dict(Key=item.key))
             if not really_run:
                 print(f"({format_size(item.size)}) {item.key}")
@@ -112,7 +133,7 @@ use_pipe = true  # 是否接受上一个任务的结果
         if not objects:
             print(f"There's no item starts with '{self.prefix}'.")
             if self.prefix.find("-") >= 0:
-                print(f"前缀通常是一个日期，没有短横线，例如: '20220101'.")
+                print(f"前缀通常是一个日期，没有短横线，例如: '20220101'")
         else:
             if really_run:
                 cos_client = get_ibm_client(cfg_ibm, get_proxies())
@@ -122,13 +143,19 @@ use_pipe = true  # 是否接受上一个任务的结果
                 if deleted:
                     print(f"Update files counter...")
                     summary = get_files_summary(cos, bucket_name)
-                    n = summary["date_count"].get(self.prefix, 0)
-                    n -= len(deleted)
-                    if n <= 0:
-                        # 如果一个日期没有文件了，就删除它。
-                        del summary["date_count"][self.prefix]
-                    else:
-                        summary["date_count"][self.prefix] = n
+
+                    for item in deleted:
+                        month = item['Key'][:6]  # 'YYYYMM'
+                        if month not in summary["month_count"]:
+                            continue
+                        n = summary["month_count"][month]
+                        n -= 1
+                        if n <= 0:
+                            # 如果一个日期没有文件了，就删除它。
+                            del summary["month_count"][month]
+                        else:
+                            summary["month_count"][month] = n
+
                     summary_json = json.dumps(summary)
                     put_text_file(cos, bucket_name, files_summary_name, summary_json)
                     print("OK.")

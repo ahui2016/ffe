@@ -120,3 +120,31 @@ use_pipe = true  # 设为 true 表示接受上一个任务的结果
 ```
 
 然后使用命令 `ffe run -f tar-anon.toml` 即可一次性完成打包和上传。这个方法适用于一些需要经常重复操作的事情，写好 TOML 文件后就可以轻松打出一套组合拳。
+
+## Upgrade (2022-01-28)
+
+2022年1月28日 ibm-upload 与 ibm-delete 的文件数量统计从按天统计改为按月统计。
+
+升级插件的方法是加 `-f` 参数，例如：
+
+```sh
+ffe install -f -i https://github.com/ahui2016/ffe/raw/main/recipes/anon-ibm.toml
+```
+
+一般来说，这样就能升级插件了，但由于本插件还涉及云端数据，因此需要额外的步骤。
+
+新建一个 toml 文件，内容如下：
+
+```toml
+[[tasks]]
+recipe = "ibm-delete"
+names = []
+
+[tasks.options]
+upgrade = true    # 重点是这句，设为 true
+use_pipe = false
+```
+
+然后执行命令 `ffe run -f xxx.toml` (假设上述 toml 的文件名是 xxx.toml), 即可升级云端统计数据。
+
+升级后，日常使用时 tasks.options 里的 upgrade 请保留默认的 false, 以免重复执行升级函数（无害，只是没必要）。

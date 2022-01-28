@@ -8,8 +8,8 @@ IBM COS 的优点：
 
 https://github.com/ahui2016/ffe/raw/main/recipes/common_ibm.py
 https://github.com/ahui2016/ffe/raw/main/recipes/ibm-upload.py
-version: 2022-01-20
-# ffe >= v0.1.0
+version: 2022-01-28
+ffe >= v0.1.0
 """
 
 # 每个插件都应如上所示在文件开头写简单介绍，以便 "ffe install --peek" 功能窥视插件概要。
@@ -66,7 +66,7 @@ use_pipe = true    # 是否接受上一个任务的结果
 # - 启用 IBM Cloud Object Storage 并且创建一个 bucket https://cloud.ibm.com/objectstorage/create
 # - 收集必要参数 https://cloud.ibm.com/docs/cloud-object-storage?topic=cloud-object-storage-python#python-prereqs
 # - 把相关信息填写到 ffe-config.toml (参考 https://github.com/ahui2016/ffe/blob/main/examples/ffe-config.toml)
-# version: 2022-01-20
+# version: 2022-01-28
 # ffe >= v0.1.0
 """
 
@@ -148,9 +148,9 @@ use_pipe = true    # 是否接受上一个任务的结果
         # 更新计数器
         print(f"Update files counter...")
         summary = get_files_summary(cos, bucket_name)
-        today = self.item_name[:8]
-        n = summary["date_count"].get(today, 0)
-        summary["date_count"][today] = n + 1
+        today = self.item_name[:6]  # 'YYYYMM'
+        n = summary["month_count"].get(today, 0)
+        summary["month_count"][today] = n + 1
         summary_json = json.dumps(summary)
         put_text_file(cos, bucket_name, files_summary_name, summary_json)
         print("OK.")
